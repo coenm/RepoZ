@@ -19,6 +19,7 @@ namespace RepoZ.Api.Win.IO
 		private string _windowsTerminalLocation;
 		private string _codeLocation;
 		private string _sourceTreeLocation;
+		private string _everythingLocation;
 
 		public WindowsRepositoryActionProvider(
 			IRepositoryWriter repositoryWriter,
@@ -71,6 +72,20 @@ namespace RepoZ.Api.Win.IO
 				if (hasSourceTree)
 					yield return CreateProcessRunnerAction(_translationService.Translate("Open in Sourcetree"), sourceTreeExecutable, "-f " + '"' + singleRepository.SafePath + '"');
 
+
+				var everythingExecutable = TryFindEverything();
+				var hasEverythingExecutable = !string.IsNullOrEmpty(everythingExecutable);
+				if (hasEverythingExecutable)
+                {
+					const string Escape = "\"";
+					const string StartEnd = "\"\"\"";
+					var path = singleRepository.Path;
+					if (!path.EndsWith("\\"))
+						path += "\\";
+
+					var args = "-s " + Escape + "" + StartEnd + path + StartEnd + " " + Escape;
+					yield return CreateProcessRunnerAction(_translationService.Translate("Search using Everything"), everythingExecutable, args);
+				}
 
 				yield return CreateBrowseRemoteAction(singleRepository);
 			}
@@ -182,6 +197,30 @@ namespace RepoZ.Api.Win.IO
 			}
 
 			return _sourceTreeLocation;
+		}
+
+		private string TryFindEverything()
+		{
+			if (_everythingLocation == null)
+			{
+				var folder = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
+				var executable = Path.Combine(folder, "Everything", "Everything.exe");
+				if (!File.Exists(executable))
+                {
+					folder = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
+					executable = Path.Combine(folder, "Everything", "Everything.exe");
+				}
+				if (!File.Exists(executable))
+				{
+					folder = Environment.ExpandEnvironmentVariables("%ProgramW6432%");
+					executable = Path.Combine(folder, "Everything", "Everything.exe");
+				}
+
+
+				_everythingLocation = File.Exists(executable) ? executable : string.Empty;
+			}
+
+			return _everythingLocation;
 		}
 
 		private string TryFindCode()
