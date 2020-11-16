@@ -20,6 +20,7 @@ namespace RepoZ.Api.Win.IO
 		private string _codeLocation;
 		private string _sourceTreeLocation;
 		private string _everythingLocation;
+		private string _totalCommanderLocation;
 
 		public WindowsRepositoryActionProvider(
 			IRepositoryWriter repositoryWriter,
@@ -72,6 +73,15 @@ namespace RepoZ.Api.Win.IO
 				if (hasSourceTree)
 					yield return CreateProcessRunnerAction(_translationService.Translate("Open in Sourcetree"), sourceTreeExecutable, "-f " + '"' + singleRepository.SafePath + '"');
 
+
+				var totalcommander = TryFindTotalCommander();
+				var hasTotalCommanderExecutable = !string.IsNullOrEmpty(totalcommander);
+				if (hasTotalCommanderExecutable)
+				{
+					const string Escape = "\"";
+					var args = "/O /T /L=" + Escape + singleRepository.Path + Escape;
+					yield return CreateProcessRunnerAction(_translationService.Translate("Open in TotalCommander"), totalcommander, args);
+				}
 
 				var everythingExecutable = TryFindEverything();
 				var hasEverythingExecutable = !string.IsNullOrEmpty(everythingExecutable);
@@ -197,6 +207,18 @@ namespace RepoZ.Api.Win.IO
 			}
 
 			return _sourceTreeLocation;
+		}
+
+
+		private string TryFindTotalCommander()
+		{
+			if (_totalCommanderLocation == null)
+			{
+				var executable = $@"C:\totalcmd\TOTALCMD64.EXE";
+				_totalCommanderLocation = File.Exists(executable) ? executable : string.Empty;
+			}
+
+			return _totalCommanderLocation;
 		}
 
 		private string TryFindEverything()
