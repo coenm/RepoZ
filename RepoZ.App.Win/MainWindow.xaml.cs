@@ -8,12 +8,10 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
-using MahApps.Metro.Controls;
 using RepoZ.Api.Common.Common;
 using RepoZ.Api.Common.Git;
 using RepoZ.Api.Git;
 using RepoZ.App.Win.Controls;
-using RepoZ.App.Win.i18n;
 using SourceChord.FluentWPF;
 
 namespace RepoZ.App.Win
@@ -83,6 +81,7 @@ namespace RepoZ.App.Win
 			base.OnActivated(e);
 			ShowUpdateIfAvailable();
 			txtFilter.Focus();
+			txtFilter.SelectAll();
 		}
 
 		protected override void OnDeactivated(EventArgs e)
@@ -122,6 +121,7 @@ namespace RepoZ.App.Win
 
 				Activate();
 				txtFilter.Focus();
+				txtFilter.SelectAll();
 			});
 		}
 
@@ -384,14 +384,14 @@ namespace RepoZ.App.Win
 
 		private void txtFilter_Finish(object sender, EventArgs e)
 		{
-            lstRepositories.Focus();
-            if (lstRepositories.Items.Count > 0)
-            {
-                lstRepositories.SelectedIndex = 0;
-                var item = (ListBoxItem)lstRepositories.ItemContainerGenerator.ContainerFromIndex(0);
-                item?.Focus();
-            }
-        }
+			lstRepositories.Focus();
+			if (lstRepositories.Items.Count > 0)
+			{
+				lstRepositories.SelectedIndex = 0;
+				var item = (ListBoxItem)lstRepositories.ItemContainerGenerator.ContainerFromIndex(0);
+				item?.Focus();
+			}
+		}
 
 		private string GetHelp(StatusCharacterMap statusCharacterMap)
 		{
