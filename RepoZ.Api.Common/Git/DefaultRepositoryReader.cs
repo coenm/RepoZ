@@ -3,6 +3,7 @@ using LibGit2Sharp;
 using RepoZ.Api.Git;
 using System.IO;
 using System;
+using System.Collections.Generic;
 
 namespace RepoZ.Api.Common.Git
 {
@@ -65,6 +66,7 @@ namespace RepoZ.Api.Common.Git
 						Location = workingDirectory.Parent.FullName,
 						Branches = repo.Branches.Select(b => b.FriendlyName).ToArray(),
 						LocalBranches = repo.Branches.Where(b => !b.IsRemote).Select(b => b.FriendlyName).ToArray(),
+						AllBranchesReader = () => ReadAllBranches(repoPath),
 						CurrentBranch = headDetails.Name,
 						CurrentBranchHasUpstream = !string.IsNullOrEmpty(repo.Head.UpstreamBranchCanonicalName),
 						CurrentBranchIsDetached = headDetails.IsDetached,
@@ -86,6 +88,28 @@ namespace RepoZ.Api.Common.Git
 			catch (Exception)
 			{
 				return Api.Git.Repository.Empty;
+			}
+		}
+
+		private string[] ReadAllBranches(string repoPath)
+		{
+			try
+			{
+				using (var repo = new LibGit2Sharp.Repository(repoPath))
+				{
+
+					var localBranches = repo.Branches.Where(b => !b.IsRemote).Select(b => b.FriendlyName).ToList();
+
+					// "origin/" is removed from remote branches name and HEAD branch is ignored
+					var strippedRemoteBranches = repo.Branches.Where(b => b.IsRemote && b.FriendlyName.IndexOf("HEAD") == -1).Select(b => b.FriendlyName.Replace("origin/", "")).ToList();
+
+					var remoteOnlyBranches = strippedRemoteBranches.Except(localBranches);
+					return remoteOnlyBranches.OrderBy(n => n).ToArray();
+				}
+			}
+			catch (Exception)
+			{
+				return new string[0];
 			}
 		}
 

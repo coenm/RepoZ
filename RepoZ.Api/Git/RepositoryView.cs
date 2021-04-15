@@ -52,6 +52,8 @@ namespace RepoZ.Api.Git
 		public string Location => Repository.Location ?? "";
 
 		public string CurrentBranch => Repository.CurrentBranch ?? "";
+        
+		public string[] ReadAllBranches() => Repository.ReadAllBranches() ?? new string[0];
 
 		public string AheadBy => Repository.AheadBy?.ToString() ?? "";
 

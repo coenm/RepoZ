@@ -35,6 +35,8 @@
 
 		public string Path { get; set; }
 
+        public string[] AllBranches { get; set; }
+
 		public bool HasUnpushedChanges { get; set; }
 
 		public string SafePath

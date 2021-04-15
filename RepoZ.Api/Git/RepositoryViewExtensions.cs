@@ -28,7 +28,6 @@ namespace RepoZ.Api.Git
 				filterProperty = repositoryView.CurrentBranch;
 			else if (filter.StartsWith("p ", StringComparison.OrdinalIgnoreCase))
 				filterProperty = repositoryView.Path;
-
 			if (filterProperty == null)
 				filterProperty = repositoryView.Name;
 			else
