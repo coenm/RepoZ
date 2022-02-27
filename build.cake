@@ -1,4 +1,4 @@
-#addin "Cake.FileHelpers"
+#addin "Cake.FileHelpers&version=4.0.1"
 #addin "Cake.Git&version=1.0.0"
 #tool "nsis"
 #tool "nuget:?package=OpenCover"
@@ -93,11 +93,11 @@ Task("Build")
 	Information("Building {0}", _solution);
 	MSBuild(_solution, settings =>
 		settings.SetPlatformTarget(PlatformTarget.MSIL)
-			.UseToolVersion(MSBuildToolVersion.VS2019)
 			.WithProperty("TreatWarningsAsErrors","true")
 			.WithTarget("Build")
 			.SetConfiguration(configuration));
 });
+// 			.UseToolVersion(MSBuildToolVersion.VS2019)
 
 Task("Test")
 	.IsDependentOn("Build")
