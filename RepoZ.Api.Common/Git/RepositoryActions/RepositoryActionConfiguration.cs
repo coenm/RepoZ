@@ -37,6 +37,9 @@ namespace RepoZ.Api.Common.Git
 
             [JsonProperty("active")]
             public bool Active { get; set; }
+
+            [JsonProperty("subfolder")] 
+            public List<RepositoryAction> Sub { get; set; } = new List<RepositoryAction>();
         }
 
         [System.Diagnostics.DebuggerDisplay("{Name}")]

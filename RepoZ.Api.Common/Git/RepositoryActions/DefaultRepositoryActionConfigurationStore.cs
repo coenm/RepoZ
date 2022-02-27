@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using RepoZ.Api.Git;
 
 namespace RepoZ.Api.Common.Git
 {
@@ -20,6 +21,32 @@ namespace RepoZ.Api.Common.Git
 
 		public override string GetFileName() => Path.Combine(AppDataPathProvider.GetAppDataPath(), "RepositoryActions.json");
 
+        public RepositoryActionConfiguration LoadRepositoryConfiguration(Repository repo)
+        {
+            var file = Path.Combine(repo.Path, ".git", "RepositoryActions.json");
+            if (File.Exists(file))
+            {
+                var result = LoadRepositoryActionConfiguration(file);
+                if (result.State == RepositoryActionConfiguration.LoadState.Ok)
+                {
+                    return result;
+                }
+			}
+            
+            file = Path.Combine(repo.Path, "RepositoryActions.json");
+            if (File.Exists(file))
+            {
+                var result = LoadRepositoryActionConfiguration(file);
+                if (result.State == RepositoryActionConfiguration.LoadState.Ok)
+                {
+                    return result;
+                }
+			}
+
+            return null;
+
+        }
+
 		public void Preload()
 		{
 			lock (_lock)
@@ -34,20 +61,28 @@ namespace RepoZ.Api.Common.Git
 					}
 				}
 
-				try
-				{
-					var lines = Get()?.ToList() ?? new List<string>();
-					var json = string.Join(Environment.NewLine, lines.Select(RemoveComment));
-					RepositoryActionConfiguration = JsonConvert.DeserializeObject<RepositoryActionConfiguration>(json) ?? new RepositoryActionConfiguration();
-					RepositoryActionConfiguration.State = RepositoryActionConfiguration.LoadState.Ok;
-				}
-				catch (Exception ex)
-				{
-					RepositoryActionConfiguration = new RepositoryActionConfiguration();
-					RepositoryActionConfiguration.State = RepositoryActionConfiguration.LoadState.Error;
-					RepositoryActionConfiguration.LoadError = ex.Message;
-				}
-			}
+                RepositoryActionConfiguration = LoadRepositoryActionConfiguration(GetFileName());
+            }
+		}
+
+        private RepositoryActionConfiguration LoadRepositoryActionConfiguration(string filename)
+        {
+			try
+            {
+                var lines = Get(filename)?.ToList() ?? new List<string>();
+                var json = string.Join(Environment.NewLine, lines.Select(RemoveComment));
+                var repositoryActionConfiguration = JsonConvert.DeserializeObject<RepositoryActionConfiguration>(json) ?? new RepositoryActionConfiguration();
+                repositoryActionConfiguration.State = RepositoryActionConfiguration.LoadState.Ok;
+                return repositoryActionConfiguration;
+            }
+            catch (Exception ex)
+            {
+                return new RepositoryActionConfiguration
+                {
+                    State = RepositoryActionConfiguration.LoadState.Error,
+                    LoadError = ex.Message
+                };
+            }
 		}
 
 		private bool TryCopyDefaultJsonFile()

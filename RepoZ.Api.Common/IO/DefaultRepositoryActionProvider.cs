@@ -53,28 +53,57 @@ namespace RepoZ.Api.Common.IO
 		}
 
 		private IEnumerable<RepositoryAction> GetContextMenuActionsInternal(IEnumerable<Repository> repositories)
-		{
+        {
+            var c = _configuration;
 			var singleRepository = repositories.Count() == 1 ? repositories.Single() : null;
 
-			if (_configuration.State == RepositoryActionConfiguration.LoadState.Error)
+			if (c.State == RepositoryActionConfiguration.LoadState.Error)
 			{
 				yield return new RepositoryAction() { Name = _translationService.Translate("Could not read repository actions"), CanExecute = false };
-				yield return new RepositoryAction() { Name = _configuration.LoadError, CanExecute = false };
+				yield return new RepositoryAction() { Name = c.LoadError, CanExecute = false };
 				var location = ((FileRepositoryStore)_repositoryActionConfigurationStore).GetFileName();
 				yield return CreateProcessRunnerAction(_translationService.Translate("Fix"), Path.GetDirectoryName(location));
 			}
 
-			if (singleRepository != null && _configuration.State == RepositoryActionConfiguration.LoadState.Ok)
+			// load specific repo config
+            RepositoryActionConfiguration specificConfig = null;
+            if (singleRepository != null)
+            {
+                specificConfig = _repositoryActionConfigurationStore.LoadRepositoryConfiguration(singleRepository);
+            }
+			
+			if (singleRepository != null && c.State == RepositoryActionConfiguration.LoadState.Ok)
 			{
-				foreach (var action in _configuration.RepositoryActions.Where(a => a.Active))
-					yield return CreateProcessRunnerAction(action, singleRepository, beginGroup: false);
+                foreach (var action in c.RepositoryActions.Where(a => a.Active))
+                {
+                    yield return CreateProcessRunnerAction(action, singleRepository, beginGroup: false);
+                }
 
-				foreach (var fileAssociaction in _configuration.FileAssociations.Where(a => a.Active))
+                if (specificConfig != null && specificConfig.State == RepositoryActionConfiguration.LoadState.Ok)
+                {
+                    foreach (var action in specificConfig.RepositoryActions.Where(a => a.Active))
+                    {
+                        yield return CreateProcessRunnerAction(action, singleRepository, beginGroup: false);
+                    }
+				}
+
+				foreach (var fileAssociaction in c.FileAssociations.Where(a => a.Active))
 				{
 					yield return CreateFileAssociationSubMenu(
 						singleRepository,
 						ReplaceTranslatables(fileAssociaction.Name),
 						fileAssociaction.Extension);
+				}
+
+                if (specificConfig != null && specificConfig.State == RepositoryActionConfiguration.LoadState.Ok)
+                {
+					foreach (var fileAssociaction in specificConfig.FileAssociations.Where(a => a.Active))
+                    {
+                        yield return CreateFileAssociationSubMenu(
+                            singleRepository,
+                            ReplaceTranslatables(fileAssociaction.Name),
+                            fileAssociaction.Extension);
+                    }
 				}
 
 				yield return CreateBrowseRemoteAction(singleRepository);
@@ -84,6 +113,7 @@ namespace RepoZ.Api.Common.IO
 			yield return CreateActionForMultipleRepositories(_translationService.Translate("Pull"), repositories, _repositoryWriter.Pull, executionCausesSynchronizing: true);
 			yield return CreateActionForMultipleRepositories(_translationService.Translate("Push"), repositories, _repositoryWriter.Push, executionCausesSynchronizing: true);
 
+		
 			if (singleRepository != null)
 			{
 				yield return new RepositoryAction()
@@ -175,8 +205,25 @@ namespace RepoZ.Api.Common.IO
 			var command = ReplaceVariables(action.Command, repository);
 			var executables = action.Executables.Select(e => ReplaceVariables(e, repository));
 			var arguments = ReplaceVariables(action.Arguments, repository);
+			
+            if (action.Sub.Any())
+            {
+				return new RepositoryAction()
+                {
+                    Name = name,
+                    DeferredSubActionsEnumerator = () =>
+						action.Sub
+                            .Select(x => CreateProcessRunnerAction(x, repository, false))
+                            .ToArray()
+                };
+			}
 
-			if (string.IsNullOrEmpty(action.Command))
+            if (command.Equals("browser", StringComparison.CurrentCultureIgnoreCase))
+            { 
+                // assume arguments is an url.
+                return CreateProcessRunnerAction(name, arguments);
+			}
+			else if (string.IsNullOrEmpty(action.Command))
 			{
 				foreach (var executable in executables)
 				{
