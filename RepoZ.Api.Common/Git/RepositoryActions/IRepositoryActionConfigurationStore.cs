@@ -7,6 +7,10 @@ namespace RepoZ.Api.Common.Git
 		void Preload();
 
 		RepositoryActionConfiguration RepositoryActionConfiguration { get; }
-        RepositoryActionConfiguration LoadRepositoryConfiguration(Repository path);
+        
+        RepositoryActionConfiguration LoadRepositoryConfiguration(Repository repo);
+
+		RepositoryActionConfiguration LoadRepositoryActionConfiguration(string filename);
+
     }
 }

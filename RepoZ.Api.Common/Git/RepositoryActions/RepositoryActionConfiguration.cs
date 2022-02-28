@@ -5,6 +5,9 @@ namespace RepoZ.Api.Common.Git
 {
 	public class RepositoryActionConfiguration
 	{
+        [JsonProperty("redirect")]
+        public string RedirectFile { get; set; }
+
         [JsonProperty("repository-actions")]
         public List<RepositoryAction> RepositoryActions { get; set; } = new List<RepositoryAction>();
 

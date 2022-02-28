@@ -44,7 +44,6 @@ namespace RepoZ.Api.Common.Git
 			}
 
             return null;
-
         }
 
 		public void Preload()
@@ -65,13 +64,14 @@ namespace RepoZ.Api.Common.Git
             }
 		}
 
-        private RepositoryActionConfiguration LoadRepositoryActionConfiguration(string filename)
+        public RepositoryActionConfiguration LoadRepositoryActionConfiguration(string filename)
         {
 			try
             {
                 var lines = Get(filename)?.ToList() ?? new List<string>();
                 var json = string.Join(Environment.NewLine, lines.Select(RemoveComment));
                 var repositoryActionConfiguration = JsonConvert.DeserializeObject<RepositoryActionConfiguration>(json) ?? new RepositoryActionConfiguration();
+
                 repositoryActionConfiguration.State = RepositoryActionConfiguration.LoadState.Ok;
                 return repositoryActionConfiguration;
             }

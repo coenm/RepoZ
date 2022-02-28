@@ -69,9 +69,24 @@ namespace RepoZ.Api.Common.IO
             RepositoryActionConfiguration specificConfig = null;
             if (singleRepository != null)
             {
-                specificConfig = _repositoryActionConfigurationStore.LoadRepositoryConfiguration(singleRepository);
-            }
-			
+                var tmpConfig = _repositoryActionConfigurationStore.LoadRepositoryConfiguration(singleRepository);
+                specificConfig = tmpConfig;
+
+				if  (!string.IsNullOrWhiteSpace(tmpConfig?.RedirectFile))
+                {
+                    var filename = ReplaceVariables(tmpConfig.RedirectFile, singleRepository);
+                    if (File.Exists(filename))
+                    {
+                        tmpConfig = _repositoryActionConfigurationStore.LoadRepositoryActionConfiguration(filename);
+
+                        if (tmpConfig != null && tmpConfig.State == RepositoryActionConfiguration.LoadState.Ok)
+                        {
+                            specificConfig = tmpConfig;
+                        }
+                    }
+                }
+			}
+
 			if (singleRepository != null && c.State == RepositoryActionConfiguration.LoadState.Ok)
 			{
                 foreach (var action in c.RepositoryActions.Where(a => a.Active))
