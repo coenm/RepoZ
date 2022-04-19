@@ -52,8 +52,9 @@ namespace RepoZ.Api.Common.IO
 			return GetContextMenuActionsInternal(repositories.Where(r => Directory.Exists(r.SafePath))).Where(a => a != null);
 		}
 
-		private IEnumerable<RepositoryAction> GetContextMenuActionsInternal(IEnumerable<Repository> repositories)
+		private IEnumerable<RepositoryAction> GetContextMenuActionsInternal(IEnumerable<Repository> repos)
 		{
+			var repositories = repos.ToArray();
 			var singleRepository = repositories.Count() == 1 ? repositories.Single() : null;
 
 			if (_configuration.State == RepositoryActionConfiguration.LoadState.Error)
