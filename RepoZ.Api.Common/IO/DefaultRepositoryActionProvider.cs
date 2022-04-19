@@ -97,7 +97,7 @@ namespace RepoZ.Api.Common.IO
 						continue;
 					}
 
-					foreach (var action in config.RepositoryActions.Where(a => a.Active))
+					foreach (var action in config.RepositoryActions.Where(a => EvaluateBooleanExpression(a.Active, singleRepository)))
 					{
 						yield return CreateProcessRunnerAction(action, singleRepository, beginGroup: false);
 					}
@@ -111,7 +111,7 @@ namespace RepoZ.Api.Common.IO
 						continue;
 					}
 
-					foreach (var fileAssociation in config.FileAssociations.Where(a => a.Active))
+					foreach (var fileAssociation in config.FileAssociations.Where(a => EvaluateBooleanExpression(a.Active, singleRepository)))
 					{
 						yield return CreateFileAssociationSubMenu(
 							singleRepository,
@@ -170,6 +170,23 @@ namespace RepoZ.Api.Common.IO
 			}
 
 			yield return CreateActionForMultipleRepositories(_translationService.Translate("Ignore"), repositories, r => _repositoryMonitor.IgnoreByPath(r.Path), beginGroup: true);
+		}
+
+		private bool EvaluateBooleanExpression(string value, Repository repository)
+		{
+			try
+			{
+				if ("true".Equals(value.ToString()?.Trim(), StringComparison.CurrentCultureIgnoreCase))
+				{
+					return true;
+				}
+
+				return false;
+			}
+			catch (Exception e)
+			{
+				return false;
+			}
 		}
 
 		private string ReplaceVariables(string value, Repository repository)
