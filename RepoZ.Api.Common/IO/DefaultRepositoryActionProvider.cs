@@ -3,14 +3,23 @@ using System.Collections.Generic;
 using RepoZ.Api.Git;
 using System.Linq;
 using System;
-using RepoZ.Api.Common;
 using RepoZ.Api.Common.Common;
 using System.IO;
 using RepoZ.Api.Common.Git;
+using ExpressionStringEvaluator.Parser;
+using ExpressionStringEvaluator.Methods.BooleanToBoolean;
+using ExpressionStringEvaluator.Methods.Flow;
+using ExpressionStringEvaluator.Methods.StringToBoolean;
+using ExpressionStringEvaluator.Methods.StringToInt;
+using ExpressionStringEvaluator.Methods.StringToString;
+using ExpressionStringEvaluator.Methods;
+using ExpressionStringEvaluator.VariableProviders.DateTime;
+using ExpressionStringEvaluator.VariableProviders;
+using DotNetEnv;
 
 namespace RepoZ.Api.Common.IO
 {
-	public class DefaultRepositoryActionProvider : IRepositoryActionProvider
+    public class DefaultRepositoryActionProvider : IRepositoryActionProvider
 	{
 		private readonly IRepositoryActionConfigurationStore _repositoryActionConfigurationStore;
 		private readonly IRepositoryWriter _repositoryWriter;
@@ -18,6 +27,7 @@ namespace RepoZ.Api.Common.IO
 		private readonly IErrorHandler _errorHandler;
 		private readonly ITranslationService _translationService;
 		private readonly RepositoryActionConfiguration _configuration;
+        private readonly ExpressionExecutor _expressionExecutor;
 
 		public DefaultRepositoryActionProvider(
 			IRepositoryActionConfigurationStore repositoryActionConfigurationStore,
@@ -33,6 +43,54 @@ namespace RepoZ.Api.Common.IO
 			_translationService = translationService ?? throw new ArgumentNullException(nameof(translationService));
 
 			_configuration = _repositoryActionConfigurationStore.RepositoryActionConfiguration;
+			
+			var dateTimeTimeVariableProviderOptions = new DateTimeVariableProviderOptions()
+			{
+				DateTimeProvider = () => DateTime.Now,
+			};
+
+			var dateTimeNowVariableProviderOptions = new DateTimeNowVariableProviderOptions()
+			{
+				DateTimeProvider = () => DateTime.Now,
+			};
+
+			var dateTimeDateVariableProviderOptions = new DateTimeDateVariableProviderOptions()
+			{
+				DateTimeProvider = () => DateTime.Now,
+			};
+
+			var providers = new List<IVariableProvider>
+			{
+				new DateTimeNowVariableProvider(dateTimeNowVariableProviderOptions),
+				new DateTimeTimeVariableProvider(dateTimeTimeVariableProviderOptions),
+				new DateTimeDateVariableProvider(dateTimeDateVariableProviderOptions),
+				new EmptyVariableProvider(),
+				new CustomEnvironmentVariableVariableProvider(GetRepoEnvironmentVariables),
+				new RepositoryVariableProvider(),
+			};
+
+			var methods = new List<IMethod>
+			{
+				new StringTrimEndStringMethod(),
+				new StringTrimStartStringMethod(),
+				new StringTrimStringMethod(),
+				new StringContainsStringMethod(),
+				new StringLowerStringMethod(),
+				new StringUpperStringMethod(),
+				new UrlEncodeStringMethod(),
+				new UrlDecodeStringMethod(),
+				new StringEqualsStringMethod(),
+				new AndBooleanMethod(),
+				new OrBooleanMethod(),
+				new StringIsNullOrEmptyBooleanMethod(),
+				new FileExistsBooleanMethod(),
+				new NotBooleanMethod(),
+				new StringLengthMethod(),
+				new IfThenElseMethod(),
+				new IfThenMethod(),
+			};
+
+			_expressionExecutor = new ExpressionStringEvaluator.Parser.ExpressionExecutor(providers, methods);
 		}
 
 		public RepositoryAction GetPrimaryAction(Repository repository)
@@ -102,7 +160,6 @@ namespace RepoZ.Api.Common.IO
 					{
 						yield return CreateProcessRunnerAction(action, singleRepository, beginGroup: false);
 					}
-
 				}
 
 				foreach (var config in repositoryActionConfigurations)
@@ -177,18 +234,46 @@ namespace RepoZ.Api.Common.IO
 		{
 			try
 			{
-				if ("true".Equals(value.ToString()?.Trim(), StringComparison.CurrentCultureIgnoreCase))
-				{
-					return true;
-				}
+                var result = _expressionExecutor.Execute<Repository>(repository, value);
+                if (result.IsBool(out var b))
+                {
+                    return b.Value;
+                }
 
-				return false;
+                if ("true".Equals(result.ToString(), StringComparison.CurrentCultureIgnoreCase))
+                {
+                    return true;
+                }
+
+                return false;
 			}
 			catch (Exception e)
 			{
 				return false;
 			}
 		}
+
+        public static Dictionary<string, string> GetRepoEnvironmentVariables(Repository repository)
+        {
+            var specificRepoEnvValues = new Dictionary<string, string>(0);
+            var repozEnvFile = Path.Combine(repository.Path, ".git", "repoz.env");
+
+            if (File.Exists(repozEnvFile))
+            {
+                try
+                {
+                    var envVars = DotNetEnv.Env.Load(repozEnvFile, new DotNetEnv.LoadOptions(setEnvVars: false));
+                    specificRepoEnvValues = envVars.ToDictionary();
+                    return specificRepoEnvValues;
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                }
+            }
+
+            return specificRepoEnvValues;
+        }
 
 		private string ReplaceVariables(string value, Repository repository)
 		{
