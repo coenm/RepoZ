@@ -6,7 +6,7 @@ namespace RepoZ.Api.Common.IO
     public class GitRepositoryFinderFactory : IGitRepositoryFinderFactory
     {
         private readonly IPathSkipper _pathSkipper;
-        private bool? _isEverytingInstalled;
+        private bool? _isEverythingInstalled;
         private readonly object _lock = new object();
 
         public GitRepositoryFinderFactory(IPathSkipper pathSkipper)
@@ -28,20 +28,20 @@ namespace RepoZ.Api.Common.IO
 
         private bool UseEverything()
         {
-            if (_isEverytingInstalled.HasValue)
+            if (_isEverythingInstalled.HasValue)
             {
-                return _isEverytingInstalled.Value;
+                return _isEverythingInstalled.Value;
             }
 
             lock (_lock)
             {
-                if (!_isEverytingInstalled.HasValue)
+                if (!_isEverythingInstalled.HasValue)
                 {
-                    _isEverytingInstalled = Everything64Api.IsInstalled();
+                    _isEverythingInstalled = Everything64Api.IsInstalled();
                 }
             }
 
-            return _isEverytingInstalled.Value;
+            return _isEverythingInstalled.Value;
         }
     }
 }
