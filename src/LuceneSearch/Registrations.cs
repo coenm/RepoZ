@@ -1,5 +1,6 @@
 namespace LuceneSearch;
 
+using System;
 using RepoZ.Api;
 
 public static class Registrations

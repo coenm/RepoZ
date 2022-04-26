@@ -1,5 +1,7 @@
 namespace LuceneSearch;
 
+using System;
+using System.Linq;
 using RepoZ.Api;
 using RepoZ.Api.Git;
 

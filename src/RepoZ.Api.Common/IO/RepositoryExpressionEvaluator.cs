@@ -69,6 +69,8 @@ namespace RepoZ.Api.Common.IO
                     new IfThenElseMethod(),
                     new IfThenMethod(),
                     new InMethod(),
+                    new StringReplaceMethod(),
+                    new SubstringMethod(),
                 };
 
             _expressionExecutor = new ExpressionStringEvaluator.Parser.ExpressionExecutor(providers, methods);

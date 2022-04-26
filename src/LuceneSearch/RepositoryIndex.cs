@@ -1,7 +1,11 @@
 namespace LuceneSearch;
 
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using System.Threading.Tasks;
 using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Documents;
@@ -113,18 +117,18 @@ internal class RepositoryIndex : IRepositoryIndex, IDisposable
         // _indexWriter.ForceMerge(1);
     }
 
-    public int Count(Query? query = null, Filter? filter = null)
+    public int Count(Query query = null, Filter filter = null)
     {
         // Execute the search with a fresh indexSearcher
         _searcherManager.MaybeRefreshBlocking();
 
-        IndexSearcher? searcher = _searcherManager.Acquire();
+        IndexSearcher searcher = _searcherManager.Acquire();
 
         try
         {
             query ??= new MatchAllDocsQuery();
 
-            TopDocs? topDocs = filter == null
+            TopDocs topDocs = filter == null
                 ? searcher.Search(query, 1)
                 : searcher.Search(query, filter, 1);
 
@@ -165,7 +169,7 @@ internal class RepositoryIndex : IRepositoryIndex, IDisposable
         }
     }
 
-    public List<RepositorySearchResult> Search(Query query, Filter? filter, out int totalHits)
+    public List<RepositorySearchResult> Search(Query query, Filter filter, out int totalHits)
     {
         var results = new List<RepositorySearchResult>();
         totalHits = 0;
