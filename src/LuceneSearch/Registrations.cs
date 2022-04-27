@@ -10,7 +10,6 @@ public static class Registrations
         action.Invoke(typeof(IRepositorySearch), typeof(SearchAdapter), true);
         action.Invoke(typeof(ILuceneDirectoryFactory), typeof(RamLuceneDirectoryFactory), true);
 
-        action.Invoke(typeof(IRepositorySearch), typeof(SearchAdapter), true);
         action.Invoke(typeof(IRepositoryIndex), typeof(RepositoryIndex), true);
         action.Invoke(typeof(EventToLuceneHandler), typeof(EventToLuceneHandler), true);
         action.Invoke(typeof(LuceneDirectoryInstance), typeof(LuceneDirectoryInstance), true);
