@@ -32,8 +32,8 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
     <PackageReference Include="SimpleInjector" Version="5.3.3" />
-    <PackageReference Include="SimpleInjector.Extensions.ExecutionContextScoping" Version="4.0.0" />
-    <PackageReference Include="SimpleInjector.Extensions.LifetimeScoping" Version="4.0.0" />
+    <!-- <PackageReference Include="SimpleInjector.Extensions.ExecutionContextScoping" Version="4.0.0" /> -->
+    <!-- <PackageReference Include="SimpleInjector.Extensions.LifetimeScoping" Version="4.0.0" /> -->
     <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
     <PackageReference Include="System.Data.DataSetExtensions" Version="4.5.0" />
     <PackageReference Include="System.ServiceModel.Federation" Version="4.8.1" />

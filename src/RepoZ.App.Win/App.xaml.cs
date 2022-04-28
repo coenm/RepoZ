@@ -3,6 +3,7 @@
 namespace RepoZ.App.Win
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
@@ -65,6 +66,8 @@ namespace RepoZ.App.Win
             _container = new Container();
 
             RegisterServices(_container);
+
+            StartModules(_container);
 
             UseRepositoryMonitor(_container);
             UseExplorerHandler(_container);
@@ -131,18 +134,14 @@ namespace RepoZ.App.Win
         protected static void RegisterServices(Container container)
         {
             container.Register<MainWindow>(Lifestyle.Singleton);
-
             container.Register<StatusCharacterMap>(Lifestyle.Singleton);
             container.Register<StatusCompressor>(Lifestyle.Singleton);
-
             container.Register<IRepositoryInformationAggregator, DefaultRepositoryInformationAggregator>(Lifestyle.Singleton);
-
             container.Register<IRepositoryMonitor, DefaultRepositoryMonitor>(Lifestyle.Singleton);
             container.Register<WindowsExplorerHandler>(Lifestyle.Singleton);
             container.Register<IRepositoryDetectorFactory, DefaultRepositoryDetectorFactory>(Lifestyle.Singleton);
             container.Register<IRepositoryObserverFactory, DefaultRepositoryObserverFactory>(Lifestyle.Singleton);
             container.Register<IGitRepositoryFinderFactory, GitRepositoryFinderFactory>(Lifestyle.Singleton);
-
             container.Register<IAppDataPathProvider, DefaultAppDataPathProvider>(Lifestyle.Singleton);
             container.Register<IErrorHandler, UIErrorHandler>(Lifestyle.Singleton);
             container.Register<IRepositoryActionProvider, DefaultRepositoryActionProvider>(Lifestyle.Singleton);
@@ -150,7 +149,6 @@ namespace RepoZ.App.Win
             container.Register<IRepositoryWriter, DefaultRepositoryWriter>(Lifestyle.Singleton);
             container.Register<IRepositoryStore, DefaultRepositoryStore>(Lifestyle.Singleton);
             container.Register<IPathProvider, DefaultDriveEnumerator>(Lifestyle.Singleton);
-            // container.Register<IGitRepositoryFinder, GravellGitRepositoryFinder>(); // remove
             container.Register<IPathSkipper, WindowsPathSkipper>(Lifestyle.Singleton);
             container.Register<IThreadDispatcher, WpfThreadDispatcher>(Lifestyle.Singleton);
             container.Register<IGitCommander, ProcessExecutingGitCommander>(Lifestyle.Singleton);
@@ -161,19 +159,14 @@ namespace RepoZ.App.Win
             container.Register<ITranslationService, ResourceDictionaryTranslationService>(Lifestyle.Singleton);
             container.Register<IRepositoryTagsResolver, DefaultRepositoryTagsResolver>(Lifestyle.Singleton);
 
-            LuceneSearch.Registrations.RegisterInternals((t1, t2, asSingleton) =>
-                {
-                    if (asSingleton)
-                    {
-                        container.Register(t1, t2, Lifestyle.Singleton);
-                    }
-                    else
-                    {
-                        container.Register(t1, t2);
-                    }
-                });
+            LuceneSearch.Registrations.Register(container);
+        }
 
-            LuceneSearch.Registrations.Start(t => _ = container.GetInstance(t));
+        private static void StartModules(Container container)
+        {
+            IEnumerable<IModule> modules = container.GetAllInstances<IModule>();
+            var allTasks = Task.WhenAll(modules.Select(x => x.StartAsync()));
+            allTasks.GetAwaiter().GetResult();
         }
 
         protected static void UseRepositoryMonitor(Container container)
