@@ -255,6 +255,11 @@ using RepoZ.Api;
             _monitor.ScanForLocalRepositoriesAsync();
         }
 
+        private void ReloadConfigButton_Click(object sender, RoutedEventArgs e)
+        {
+            _actionConfigurationStore.Preload();
+        }
+
         private void ClearButton_Click(object sender, RoutedEventArgs e)
         {
             _monitor.Reset();
