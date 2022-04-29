@@ -13,7 +13,7 @@ namespace RepoZ.App.Win
     using System.Windows.Controls.Primitives;
     using System.Windows.Data;
     using System.Windows.Input;
-using RepoZ.Api;
+    using RepoZ.Api;
     using RepoZ.Api.Common.Common;
     using RepoZ.Api.Common.Git;
     using RepoZ.Api.Git;
