@@ -18,6 +18,7 @@ namespace RepoZ.App.Win
     using RepoZ.Api.Common.Common;
     using RepoZ.Api.Common.Git;
     using RepoZ.Api.Git;
+using RepoZ.Api.IO;
     using RepoZ.App.Win.Controls;
     using SourceChord.FluentWPF;
 
@@ -30,12 +31,13 @@ namespace RepoZ.App.Win
         private readonly IRepositoryIgnoreStore _repositoryIgnoreStore;
         private readonly DefaultRepositoryMonitor _monitor;
         private readonly ITranslationService _translationService;
-        private readonly IRepositoryActionConfigurationStore _actionConfigurationStore;
+        // private readonly IRepositoryActionConfigurationStore _actionConfigurationStore;
         private readonly IRepositorySearch _repositorySearch;
         private bool _closeOnDeactivate = true;
         private bool _refreshDelayed = false;
         private DateTime _timeOfLastRefresh = DateTime.MinValue;
         private readonly IFileSystem _fileSystem;
+        private readonly IAppDataPathProvider _appDataPathProvider;
 
         public MainWindow(
             StatusCharacterMap statusCharacterMap,
@@ -45,7 +47,7 @@ namespace RepoZ.App.Win
             IRepositoryIgnoreStore repositoryIgnoreStore,
             IAppSettingsService appSettingsService,
             ITranslationService translationService,
-            IRepositoryActionConfigurationStore actionConfigurationStore,
+            IAppDataPathProvider appDataPathProvider,
             IRepositorySearch repositorySearch,
             IFileSystem fileSystem)
         {
@@ -66,7 +68,7 @@ namespace RepoZ.App.Win
 
             _repositoryActionProvider = repositoryActionProvider ?? throw new ArgumentNullException(nameof(repositoryActionProvider));
             _repositoryIgnoreStore = repositoryIgnoreStore ?? throw new ArgumentNullException(nameof(repositoryIgnoreStore));
-            _actionConfigurationStore = actionConfigurationStore ?? throw new ArgumentNullException(nameof(actionConfigurationStore));
+            _appDataPathProvider = appDataPathProvider ?? throw new ArgumentNullException(nameof(appDataPathProvider));
             _repositorySearch = repositorySearch ?? throw new ArgumentNullException(nameof(repositorySearch));
             _fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
 
@@ -188,12 +190,17 @@ namespace RepoZ.App.Win
             var innerRepositories = selectedViews.Select(view => view.Repository);
             foreach (var action in _repositoryActionProvider.GetContextMenuActions(innerRepositories))
             {
-                if (action.BeginGroup && items.Count > 0)
+                if (action is RepositorySeparatorAction)
                 {
-                    items.Add(new Separator());
+                    if (items.Count > 0)
+                    {
+                        items.Add(new Separator());
+                    }
                 }
-
-                items.Add(CreateMenuItem(sender, action, selectedViews));
+                else
+                {
+                    items.Add(CreateMenuItem(sender, action, selectedViews));
+                }
             }
 
             return true;
@@ -259,11 +266,6 @@ namespace RepoZ.App.Win
             _monitor.ScanForLocalRepositoriesAsync();
         }
 
-        private void ReloadConfigButton_Click(object sender, RoutedEventArgs e)
-        {
-            _actionConfigurationStore.Preload();
-        }
-
         private void ClearButton_Click(object sender, RoutedEventArgs e)
         {
             _monitor.Reset();
@@ -276,10 +278,8 @@ namespace RepoZ.App.Win
 
         private void CustomizeContextMenu_Click(object sender, RoutedEventArgs e)
         {
-            Navigate("https://github.com/awaescher/RepoZ-RepositoryActions");
-
-            var fileName = ((FileRepositoryStore)_actionConfigurationStore).GetFileName();
-            var directoryName = Path.GetDirectoryName(fileName);
+            // Navigate("https://github.com/awaescher/RepoZ-RepositoryActions");
+            var directoryName = _appDataPathProvider.GetAppDataPath();
 
             if (_fileSystem.Directory.Exists(directoryName))
             {
@@ -362,8 +362,13 @@ namespace RepoZ.App.Win
             parent.ColumnDefinitions[Grid.GetColumn(UpdateButton)].Width = App.AvailableUpdate == null ? new GridLength(0) : GridLength.Auto;
         }
 
-        private MenuItem CreateMenuItem(object sender, RepositoryAction action, IEnumerable<RepositoryView> affectedViews = null)
+        private Control /*MenuItem*/ CreateMenuItem(object sender, RepositoryAction action, IEnumerable<RepositoryView> affectedViews = null)
         {
+            if (action is RepositorySeparatorAction)
+            {
+                return new Separator();
+            }
+
             Action<object, object> clickAction = (object clickSender, object clickArgs) =>
                 {
                     if (action?.Action != null)
@@ -398,14 +403,14 @@ namespace RepoZ.App.Win
             {
                 // this is a template submenu item to enable submenus under the current
                 // menu item. this item gets removed when the real subitems are created
-                item.Items.Add("");
+                item.Items.Add(string.Empty);
 
                 void SelfDetachingEventHandler(object _, RoutedEventArgs __)
                 {
                     item.SubmenuOpened -= SelfDetachingEventHandler;
                     item.Items.Clear();
 
-                    foreach (var subAction in action.DeferredSubActionsEnumerator())
+                    foreach (RepositoryAction subAction in action.DeferredSubActionsEnumerator())
                     {
                         item.Items.Add(CreateMenuItem(sender, subAction));
                     }
@@ -414,6 +419,13 @@ namespace RepoZ.App.Win
                 }
 
                 item.SubmenuOpened += SelfDetachingEventHandler;
+            }
+            else if (action.SubActions != null)
+            {
+                foreach (RepositoryAction subAction in action.SubActions)
+                {
+                    item.Items.Add(CreateMenuItem(sender, subAction));
+                }
             }
 
             return item;
@@ -426,7 +438,7 @@ namespace RepoZ.App.Win
                 return;
             }
 
-            foreach (var view in affectedViews)
+            foreach (RepositoryView view in affectedViews)
             {
                 view.IsSynchronizing = synchronizing;
             }

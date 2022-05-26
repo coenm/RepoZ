@@ -2,8 +2,6 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <ReleaseVersion>4.0</ReleaseVersion>
-    <Version>1.0.0.0</Version>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
@@ -12,7 +10,8 @@
     <PackageReference Include="ExpressionStringEvaluator" Version="0.1.14" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="LibGit2Sharp" Version="0.27.0-preview-0182" />
-    <PackageReference Include="System.IO.Abstractions" Version="17.0.3" />
+    <PackageReference Include="System.IO.Abstractions" Version="17.0.12" />
+    <PackageReference Include="System.Memory" Version="4.5.4" />
   </ItemGroup>
 
   <ItemGroup>

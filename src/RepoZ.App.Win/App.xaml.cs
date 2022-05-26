@@ -26,10 +26,17 @@ namespace RepoZ.App.Win
     using System.IO;
     using System.Reflection;
     using System.IO.Abstractions;
+    using RepoZ.Api.Common.IO.ExpressionEvaluator;
+    using ExpressionStringEvaluator.VariableProviders;
+    using ExpressionStringEvaluator.Methods;
+    using ExpressionStringEvaluator.VariableProviders.DateTime;
+    using RepoZ.Api.Common.IO.ModuleBasedRepositoryActionProvider;
+    using RepoZ.Api.Common.IO.ModuleBasedRepositoryActionProvider.ActionDeserializers;
+    using RepoZ.Api.Common.IO.ModuleBasedRepositoryActionProvider.ActionMappers;
 
-/// <summary>
-/// Interaction logic for App.xaml
-/// </summary>
+    /// <summary>
+    /// Interaction logic for App.xaml
+    /// </summary>
     public partial class App : Application, IRepositorySource
     {
         private static Timer _updateTimer;
@@ -66,7 +73,6 @@ namespace RepoZ.App.Win
             _container = new Container();
             RegisterServices(_container);
             UseRepositoryMonitor(_container);
-            PreloadRepositoryActions(_container);
             _container.Verify(VerificationOption.VerifyAndDiagnose);
 
             _updateTimer = new Timer(async state => await CheckForUpdatesAsync(), null, 5000, Timeout.Infinite);
@@ -144,14 +150,60 @@ namespace RepoZ.App.Win
             container.Register<IAppSettingsService, FileAppSettingsService>(Lifestyle.Singleton);
             container.Register<IAutoFetchHandler, DefaultAutoFetchHandler>(Lifestyle.Singleton);
             container.Register<IRepositoryIgnoreStore, DefaultRepositoryIgnoreStore>(Lifestyle.Singleton);
-            container.Register<IRepositoryActionConfigurationStore, DefaultRepositoryActionConfigurationStore>(Lifestyle.Singleton);
             container.Register<ITranslationService, ResourceDictionaryTranslationService>(Lifestyle.Singleton);
-            container.Register<IRepositoryTagsResolver, DefaultRepositoryTagsResolver>(Lifestyle.Singleton);
 
+            container.Register<IRepositoryTagsFactory, RepositoryTagsConfigurationFactory>(Lifestyle.Singleton);
+            container.Register<RepositoryConfigurationReader>(Lifestyle.Singleton);
             container.Collection.Append<ISingleGitRepositoryFinderFactory, GravellGitRepositoryFinderFactory>(Lifestyle.Singleton);
 
             var fileSystem = new FileSystem();
             container.RegisterInstance<IFileSystem>(fileSystem);
+
+            container.Register<RepositoryExpressionEvaluator>(Lifestyle.Singleton);
+            Assembly[] repoExpressionEvaluators = new[]
+                {
+                    typeof(IVariableProvider).Assembly,
+                    typeof(RepositoryExpressionEvaluator).Assembly,
+                };
+            // container.Collection.Register(typeof(IVariableProvider), repoExpressionEvaluators, Lifestyle.Singleton);
+            container.Collection.Append<IVariableProvider, DateTimeNowVariableProvider>(Lifestyle.Singleton);
+            container.Collection.Append<IVariableProvider, DateTimeTimeVariableProvider>(Lifestyle.Singleton);
+            container.Collection.Append<IVariableProvider, DateTimeDateVariableProvider>(Lifestyle.Singleton);
+            container.Collection.Append<IVariableProvider, EmptyVariableProvider>(Lifestyle.Singleton);
+            container.Collection.Append<IVariableProvider, CustomEnvironmentVariableVariableProvider>(Lifestyle.Singleton);
+            container.Collection.Append<IVariableProvider, RepoZVariableProvider>(Lifestyle.Singleton);
+            container.Collection.Append<IVariableProvider, RepositoryVariableProvider>(Lifestyle.Singleton);
+            container.Collection.Append<IVariableProvider, SlashVariableProvider>(Lifestyle.Singleton);
+            container.Collection.Append<IVariableProvider, BackslashVariableProvider>(Lifestyle.Singleton);
+
+            container.Collection.Register(typeof(IMethod), repoExpressionEvaluators, Lifestyle.Singleton);
+            container.RegisterInstance(new DateTimeVariableProviderOptions()
+                {
+                    DateTimeProvider = () => DateTime.Now,
+                });
+            container.RegisterInstance(new DateTimeNowVariableProviderOptions()
+                {
+                    DateTimeProvider = () => DateTime.Now,
+                });
+            container.RegisterInstance(new DateTimeDateVariableProviderOptions()
+                {
+                    DateTimeProvider = () => DateTime.Now,
+                });
+
+            container.Register<ActionDeserializerComposition>(Lifestyle.Singleton);
+            container.Collection.Register<IActionDeserializer>(
+                new[] { typeof(IActionDeserializer).Assembly, },
+                Lifestyle.Singleton);
+
+            container.Register<ActionMapperComposition>(Lifestyle.Singleton);
+            container.Collection.Register<IActionToRepositoryActionMapper>(
+                new[] { typeof(IActionToRepositoryActionMapper).Assembly, },
+                Lifestyle.Singleton);
+
+
+            container.Register<DynamicRepositoryActionDeserializer>(Lifestyle.Singleton);
+            container.Register<RepositorySpecificConfiguration>(Lifestyle.Singleton);
+
 
             IEnumerable<FileInfo> pluginDlls = PluginFinder.FindPluginAssemblies(Path.Combine(AppDomain.CurrentDomain.BaseDirectory), fileSystem);
             IEnumerable<Assembly> assemblies = pluginDlls.Select(plugin => Assembly.Load(AssemblyName.GetAssemblyName(plugin.FullName)));
@@ -187,11 +239,6 @@ namespace RepoZ.App.Win
             // var repositoryInformationAggregator = container.GetInstance<IRepositoryInformationAggregator>();
             _repositoryMonitor = container.GetInstance<IRepositoryMonitor>();
             _repositoryMonitor.Observe();
-        }
-
-        protected static void PreloadRepositoryActions(Container container)
-        {
-            container.GetInstance<IRepositoryActionConfigurationStore>().Preload();
         }
 
         private async Task CheckForUpdatesAsync()
