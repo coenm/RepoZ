@@ -8,13 +8,15 @@ namespace RepoZ.Api.Git
 
     public class DefaultRepositoryInformationAggregator : IRepositoryInformationAggregator
     {
-        private readonly ObservableCollection<RepositoryView> _dataSource = new ObservableCollection<RepositoryView>();
         private readonly IThreadDispatcher _dispatcher;
 
-        public DefaultRepositoryInformationAggregator(StatusCompressor compressor, IThreadDispatcher dispatcher)
+        public DefaultRepositoryInformationAggregator(IThreadDispatcher dispatcher)
         {
-            _dispatcher = dispatcher;
+            _dispatcher = dispatcher ?? throw new ArgumentNullException(nameof(dispatcher));
+            Repositories = new ObservableCollection<RepositoryView>();
         }
+
+        public ObservableCollection<RepositoryView> Repositories { get; }
 
         public void Add(Repository repository)
         {
@@ -22,8 +24,8 @@ namespace RepoZ.Api.Git
                 {
                     var view = new RepositoryView(repository);
 
-                    _dataSource.Remove(view);
-                    _dataSource.Add(view);
+                    Repositories.Remove(view);
+                    Repositories.Add(view);
                 });
         }
 
@@ -31,32 +33,32 @@ namespace RepoZ.Api.Git
         {
             _dispatcher.Invoke(() =>
                 {
-                    RepositoryView[] viewsToRemove = _dataSource.Where(r => r.Path.Equals(path, StringComparison.OrdinalIgnoreCase)).ToArray();
+                    RepositoryView[] viewsToRemove = Repositories.Where(r => r.Path.Equals(path, StringComparison.OrdinalIgnoreCase)).ToArray();
 
                     for (var i = viewsToRemove.Length - 1; i >= 0; i--)
                     {
-                        _dataSource.Remove(viewsToRemove[i]);
+                        Repositories.Remove(viewsToRemove[i]);
                     }
                 });
         }
 
-        public string GetStatusByPath(string path)
+        public string? GetStatusByPath(string path)
         {
-            RepositoryView view = GetRepositoryByPath(path);
+            RepositoryView? view = GetRepositoryByPath(path);
             return view?.BranchWithStatus;
         }
 
-        private RepositoryView GetRepositoryByPath(string path)
+        private RepositoryView? GetRepositoryByPath(string path)
         {
             if (string.IsNullOrEmpty(path))
             {
                 return null;
             }
 
-            List<RepositoryView> views = null;
+            List<RepositoryView>? views = null;
             try
             {
-                views = _dataSource?.ToList();
+                views = Repositories.ToList();
             }
             catch (ArgumentException)
             {
@@ -74,7 +76,12 @@ namespace RepoZ.Api.Git
                 path += "\\";
             }
 
-            IEnumerable<RepositoryView> viewsByPath = views.Where(r => r?.Path != null && path.StartsWith(r.Path, StringComparison.OrdinalIgnoreCase));
+            RepositoryView[] viewsByPath = views!
+                                           .Where(r =>
+                                               r?.Path != null
+                                               &&
+                                               path.StartsWith(r.Path, StringComparison.OrdinalIgnoreCase))
+                                           .ToArray();
 
             if (!viewsByPath.Any())
             {
@@ -91,9 +98,7 @@ namespace RepoZ.Api.Git
 
         public void Reset()
         {
-            _dataSource.Clear();
+            Repositories.Clear();
         }
-
-        public ObservableCollection<RepositoryView> Repositories => _dataSource;
     }
 }

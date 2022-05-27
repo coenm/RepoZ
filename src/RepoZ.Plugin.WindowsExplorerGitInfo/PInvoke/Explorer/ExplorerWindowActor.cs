@@ -6,41 +6,44 @@ namespace RepoZ.Plugin.WindowsExplorerGitInfo.PInvoke.Explorer
 
     internal abstract class ExplorerWindowActor
     {
-        private Type _shellApplicationType;
+        private Type? _shellApplicationType;
 
         public void Pulse()
         {
+            _shellApplicationType ??= Type.GetTypeFromProgID("Shell.Application");
+
             if (_shellApplicationType == null)
             {
-                _shellApplicationType = Type.GetTypeFromProgID("Shell.Application");
+                return;
             }
 
             try
             {
                 var comShellApplication = Activator.CreateInstance(_shellApplicationType);
-                using (var shell = new Combridge(comShellApplication))
+                if (comShellApplication == null)
                 {
-                    IEnumerable comWindows = shell.InvokeMethod<IEnumerable>("Windows");
-                    foreach (var comWindow in comWindows)
+                    return;
+                }
+
+                using var shell = new Combridge(comShellApplication);
+                IEnumerable comWindows = shell.InvokeMethod<IEnumerable>("Windows");
+                foreach (var comWindow in comWindows)
+                {
+                    if (comWindow == null)
                     {
-                        if (comWindow == null)
-                        {
-                            continue;
-                        }
+                        continue;
+                    }
 
-                        using (var window = new Combridge(comWindow))
-                        {
-                            var fullName = window.GetPropertyValue<string>("FullName");
-                            var executable = Path.GetFileName(fullName);
-                            if (string.Equals(executable, "explorer.exe", StringComparison.OrdinalIgnoreCase))
-                            {
-                                // thanks http://docwiki.embarcadero.com/Libraries/Seattle/en/SHDocVw.IWebBrowser2_Properties
-                                var hwnd = window.GetPropertyValue<long>("hwnd");
-                                var locationUrl = window.GetPropertyValue<string>("LocationURL");
+                    using var window = new Combridge(comWindow);
+                    var fullName = window.GetPropertyValue<string>("FullName");
+                    var executable = Path.GetFileName(fullName);
+                    if (string.Equals(executable, "explorer.exe", StringComparison.OrdinalIgnoreCase))
+                    {
+                        // thanks http://docwiki.embarcadero.com/Libraries/Seattle/en/SHDocVw.IWebBrowser2_Properties
+                        var hwnd = window.GetPropertyValue<long>("hwnd");
+                        var locationUrl = window.GetPropertyValue<string>("LocationURL");
 
-                                Act((IntPtr)hwnd, locationUrl);
-                            }
-                        }
+                        Act((IntPtr)hwnd, locationUrl);
                     }
                 }
             }

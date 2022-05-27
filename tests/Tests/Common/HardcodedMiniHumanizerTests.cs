@@ -7,8 +7,8 @@ namespace Tests.Common
 
     public class HardcodedMiniHumanizerTests
     {
-        private FakeClock _clock;
-        private IHumanizer _humanizer;
+        private FakeClock _clock = null!;
+        private IHumanizer _humanizer = null!;
 
         [SetUp]
         public void Setup()

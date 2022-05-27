@@ -10,39 +10,39 @@ namespace RepoZ.App.Win
 
         public static void SetStartup(string appName, bool startup)
         {
-            var key = Registry.CurrentUser.OpenSubKey(REG_KEY, true);
+            RegistryKey? key = Registry.CurrentUser.OpenSubKey(REG_KEY, true);
 
             if (startup)
             {
-                key.SetValue(appName, GetAppPath());
+                key?.SetValue(appName, GetAppPath());
             }
             else
             {
-                key.DeleteValue(appName, false);
+                key?.DeleteValue(appName, false);
             }
         }
 
         public static bool IsStartup(string appName)
         {
-            var key = Registry.CurrentUser.OpenSubKey(REG_KEY);
+            RegistryKey? key = Registry.CurrentUser.OpenSubKey(REG_KEY);
             return IsStartup(key, appName);
         }
 
-        public static bool IsStartup(RegistryKey key, string appName)
+        private static bool IsStartup(RegistryKey? key, string appName)
         {
             return GetValueAsString(key, appName)
                 .Equals(GetAppPath(), StringComparison.OrdinalIgnoreCase);
         }
 
-        private static string GetValueAsString(RegistryKey key, string appName)
+        private static string GetValueAsString(RegistryKey? key, string appName)
         {
-            var value = key.GetValue(appName);
+            var value = key?.GetValue(appName);
             return value?.ToString() ?? string.Empty;
         }
 
         private static string GetAppPath()
         {
-            return $"\"{Assembly.GetEntryAssembly().Location}\"";
+            return $"\"{Assembly.GetEntryAssembly()!.Location}\"";
         }
     }
 }

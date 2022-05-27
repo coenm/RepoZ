@@ -26,7 +26,7 @@ public class DynamicRepositoryActionDeserializer
 
         var configuration = new RepositoryActionConfiguration();
 
-        JToken token = jsonObject["redirect"];
+        JToken? token = jsonObject["redirect"];
         configuration.Redirect = DeserializeRedirect(token);
 
         token = jsonObject["repository-specific-env-files"];
@@ -47,17 +47,17 @@ public class DynamicRepositoryActionDeserializer
         return configuration;
     }
 
-    private void DeserializeRepositoryActions(JToken repositoryActionsToken, RepositoryActionConfiguration configuration)
+    private void DeserializeRepositoryActions(JToken? repositoryActionsToken, RepositoryActionConfiguration configuration)
     {
         if (repositoryActionsToken == null)
         {
             return;
         }
 
-        JToken actions = repositoryActionsToken.SelectToken("actions");
+        JToken? actions = repositoryActionsToken.SelectToken("actions");
         if (actions != null)
         {
-            JToken jTokenVariables = repositoryActionsToken.SelectToken("variables");
+            JToken? jTokenVariables = repositoryActionsToken.SelectToken("variables");
             configuration.ActionsCollection.Variables.AddRange(TryDeserializeEnumerable<Variable>(jTokenVariables));
             repositoryActionsToken = actions;
         }
@@ -65,7 +65,7 @@ public class DynamicRepositoryActionDeserializer
         IList<JToken> repositoryActions = repositoryActionsToken.Children().ToList();
         foreach (JToken variable in repositoryActions)
         {
-            JToken typeToken = variable["type"];
+            JToken? typeToken = variable["type"];
             if (typeToken == null)
             {
                 continue;
@@ -77,7 +77,7 @@ public class DynamicRepositoryActionDeserializer
                 continue;
             }
 
-            RepositoryAction customAction = _deserializers.DeserializeSingleAction(typeValue, variable);
+            RepositoryAction? customAction = _deserializers.DeserializeSingleAction(typeValue!, variable);
             if (customAction == null)
             {
                 continue;
@@ -87,17 +87,17 @@ public class DynamicRepositoryActionDeserializer
         }
     }
 
-    private static void DeserializeRepositoryTags(JToken repositoryTagsToken, ref RepositoryActionConfiguration configuration)
+    private static void DeserializeRepositoryTags(JToken? repositoryTagsToken, ref RepositoryActionConfiguration configuration)
     {
         if (repositoryTagsToken == null)
         {
             return;
         }
 
-        JToken tagsToken = repositoryTagsToken.SelectToken("tags");
+        JToken? tagsToken = repositoryTagsToken.SelectToken("tags");
         if (tagsToken != null)
         {
-            JToken token = repositoryTagsToken.SelectToken("variables");
+            JToken? token = repositoryTagsToken.SelectToken("variables");
             configuration.TagsCollection.Variables.AddRange(TryDeserializeEnumerable<Variable>(token));
             configuration.TagsCollection.Tags.AddRange(TryDeserializeEnumerable<RepositoryActionTag>(tagsToken));
         }
@@ -107,7 +107,7 @@ public class DynamicRepositoryActionDeserializer
         }
     }
 
-    private static IEnumerable<T> TryDeserializeEnumerable<T>(JToken token)
+    private static IEnumerable<T> TryDeserializeEnumerable<T>(JToken? token)
     {
         if (token == null)
         {
@@ -117,15 +117,15 @@ public class DynamicRepositoryActionDeserializer
         IList<JToken> files = token.Children().ToList();
         foreach (JToken file in files)
         {
-            T v = file.ToObject<T>();
-            if (v != null)
+            T? obj = file.ToObject<T>();
+            if (obj != null)
             {
-                yield return v;
+                yield return obj;
             }
         }
     }
 
-    private static Redirect DeserializeRedirect(JToken redirectToken)
+    private static Redirect? DeserializeRedirect(JToken? redirectToken)
     {
         if (redirectToken == null)
         {
@@ -137,10 +137,11 @@ public class DynamicRepositoryActionDeserializer
             return redirectToken.ToObject<Redirect>();
         }
 
-        var value = redirectToken.Value<string>();
+        var redirectValue = redirectToken.Value<string>();
+
         return new Redirect()
             {
-                Filename = value,
+                Filename = redirectValue ?? string.Empty,
             };
     }
 }

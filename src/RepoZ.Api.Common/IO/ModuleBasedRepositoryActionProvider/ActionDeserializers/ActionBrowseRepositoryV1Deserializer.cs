@@ -12,12 +12,12 @@ public class ActionBrowseRepositoryV1Deserializer : IActionDeserializer
         return "browse-repository@1".Equals(type, StringComparison.CurrentCultureIgnoreCase);
     }
 
-    RepositoryAction IActionDeserializer.Deserialize(JToken jToken, ActionDeserializerComposition actionDeserializer)
+    RepositoryAction? IActionDeserializer.Deserialize(JToken jToken, ActionDeserializerComposition actionDeserializer)
     {
         return Deserialize(jToken);
     }
 
-    public RepositoryActionBrowseRepositoryV1 Deserialize(JToken jToken)
+    private static RepositoryActionBrowseRepositoryV1? Deserialize(JToken jToken)
     {
         return jToken.ToObject<RepositoryActionBrowseRepositoryV1>();
     }

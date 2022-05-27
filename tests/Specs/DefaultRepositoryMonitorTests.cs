@@ -22,7 +22,6 @@ using RepoZ.Api.Common.Common;
 using RepoZ.Api.Common.Git;
 using RepoZ.Api.Common.Git.AutoFetch;
 using RepoZ.Api.Common.IO;
-using RepoZ.Api.Common.IO.ExpressionEvaluator;
 using RepoZ.Api.Common.IO.ModuleBasedRepositoryActionProvider;
 using RepoZ.Api.Git;
 using RepoZ.Api.IO;
@@ -32,11 +31,11 @@ using Specs.Mocks;
 public class DefaultRepositoryMonitorTests
 {
     private readonly IFileSystem _fileSystem = new FileSystem();
-    private RepositoryWriter _origin;
-    private RepositoryWriter _cloneA;
-    private RepositoryWriter _cloneB;
-    private string _rootPath;
-
+    private RepositoryWriter _origin = null!;
+    private RepositoryWriter _cloneA = null!;
+    private RepositoryWriter _cloneB = null!;
+    private DefaultRepositoryMonitor _monitor = null!;
+    private string _rootPath = string.Empty;
     private string _defaultBranch = "master";
 
     [OneTimeSetUp]
@@ -105,7 +104,7 @@ public class DefaultRepositoryMonitorTests
             };
 
         var defaultRepositoryReader = new DefaultRepositoryReader(new Mock<IRepositoryTagsFactory>().Object);
-        Monitor = new DefaultRepositoryMonitor(
+        _monitor = new DefaultRepositoryMonitor(
             new GivenPathProvider(new string[] { repoPath, }),
             defaultRepositoryReader,
             new DefaultRepositoryDetectorFactory(defaultRepositoryReader),
@@ -113,7 +112,6 @@ public class DefaultRepositoryMonitorTests
             new GitRepositoryFinderFactory(appSettingsService.Object, new List<ISingleGitRepositoryFinderFactory>() { new GravellGitRepositoryFinderFactory(new NeverSkippingPathSkipper(), _fileSystem) }),
             new UselessRepositoryStore(),
             new DefaultRepositoryInformationAggregator(
-                new StatusCompressor(new StatusCharacterMap()),
                 new DirectThreadDispatcher()),
             new Mock<IAutoFetchHandler>().Object,
             new Mock<IRepositoryIgnoreStore>().Object,
@@ -131,7 +129,7 @@ public class DefaultRepositoryMonitorTests
     [OneTimeTearDown]
     public void TearDown()
     {
-        Monitor.Stop();
+        _monitor.Stop();
         //_monitor.Dispose();
 
         WaitFileOperationDelay();
@@ -176,10 +174,7 @@ commit file             master   |  |       |                   |              v
     [Order(0)]
     public void T0A_Detects_Repository_Creation()
     {
-        Monitor.Expect(() =>
-                {
-                    _origin.InitBare();
-                },
+        _monitor.Expect(() => _origin.InitBare(),
             changes => changes == 0,
             deletes => deletes == 0);
     }
@@ -188,7 +183,7 @@ commit file             master   |  |       |                   |              v
     [Order(1)]
     public void T1A_Detects_Repository_Clone()
     {
-        Monitor.Expect(() =>
+        _monitor.Expect(() =>
                 {
                     _cloneA.Clone(_origin.Path);
                     _cloneB.Clone(_origin.Path);
@@ -204,10 +199,7 @@ commit file             master   |  |       |                   |              v
     [Order(2)]
     public void T2B_Detects_File_Creation()
     {
-        Monitor.Expect(() =>
-                {
-                    _cloneA.CreateFile("First.A", "First file on clone A");
-                },
+        _monitor.Expect(() => _cloneA.CreateFile("First.A", "First file on clone A"),
             changes => changes >= 0, /* TODO */
             deletes => deletes == 0);
     }
@@ -216,10 +208,7 @@ commit file             master   |  |       |                   |              v
     [Order(3)]
     public void T2C_Detects_File_Staging()
     {
-        Monitor.Expect(() =>
-                {
-                    _cloneA.Stage("First.A");
-                },
+        _monitor.Expect(() => _cloneA.Stage("First.A"),
             changes => changes >= 0, /* TODO */
             deletes => deletes == 0);
     }
@@ -228,10 +217,7 @@ commit file             master   |  |       |                   |              v
     [Order(4)]
     public void T2D_Detects_Repository_Commits()
     {
-        Monitor.Expect(() =>
-                {
-                    _cloneA.Commit("Commit #1 on A");
-                },
+        _monitor.Expect(() => _cloneA.Commit("Commit #1 on A"),
             changes => changes >= 1,
             deletes => deletes == 0);
     }
@@ -240,7 +226,7 @@ commit file             master   |  |       |                   |              v
     [Order(5)]
     public void T2E_Detects_Repository_Pushes()
     {
-        Monitor.Expect(() =>
+        _monitor.Expect(() =>
                 {
                     _cloneA.Push();
                     _origin.HeadTip.Should().Be(_cloneA.HeadTip);
@@ -253,7 +239,7 @@ commit file             master   |  |       |                   |              v
     [Order(6)]
     public void T3A_Detects_Repository_Pull()
     {
-        Monitor.Expect(() =>
+        _monitor.Expect(() =>
                 {
                     _cloneB.Pull();
                     _cloneB.HeadTip.Should().Be(_cloneA.HeadTip);
@@ -266,7 +252,7 @@ commit file             master   |  |       |                   |              v
     [Order(7)]
     public void T4A_Detects_Repository_Branch_And_Checkout()
     {
-        Monitor.Expect(() =>
+        _monitor.Expect(() =>
                 {
                         
                     _cloneB.CurrentBranch.Should().Be(_defaultBranch);
@@ -310,10 +296,7 @@ commit file             master   |  |       |                   |              v
     [Order(11)]
     public void T5B_Detects_Repository_Fetch()
     {
-        Monitor.Expect(() =>
-                {
-                    _cloneB.Fetch();
-                },
+        _monitor.Expect(() => _cloneB.Fetch(),
             changes => changes >= 1,
             deletes => deletes == 0);
     }
@@ -322,10 +305,7 @@ commit file             master   |  |       |                   |              v
     [Order(12)]
     public void T5C_Detects_Repository_Merge_Tracked_Branch()
     {
-        Monitor.Expect(() =>
-                {
-                    _cloneB.MergeWithTracked();
-                },
+        _monitor.Expect(() => _cloneB.MergeWithTracked(),
             changes => changes >= 1,
             deletes => deletes == 0);
     }
@@ -343,7 +323,7 @@ commit file             master   |  |       |                   |              v
     [Order(14)]
     public void T6B_Detects_Repository_Rebase()
     {
-        Monitor.Expect(() =>
+        _monitor.Expect(() =>
                 {
                     var steps = _cloneB.Rebase(_defaultBranch);
                     steps.Should().Be(1);
@@ -365,7 +345,7 @@ commit file             master   |  |       |                   |              v
     [Order(16)]
     public void T7B_Detects_Repository_Merge_With_Other_Branch()
     {
-        Monitor.Expect(() => _cloneB.Merge("develop"),
+        _monitor.Expect(() => _cloneB.Merge("develop"),
             changes => changes >= 1,
             deletes => deletes == 0);
     }
@@ -374,7 +354,7 @@ commit file             master   |  |       |                   |              v
     [Order(17)]
     public void T8A_Detects_Repository_Push_With_Upstream()
     {
-        Monitor.Expect(
+        _monitor.Expect(
             () =>
                 {
                     _origin.HeadTip.Should().NotBe(_cloneB.HeadTip);
@@ -391,7 +371,7 @@ commit file             master   |  |       |                   |              v
     {
         NormalizeReadOnlyFiles(_cloneA.Path);
 
-        Monitor.Expect(
+        _monitor.Expect(
             () => _fileSystem.Directory.Delete(_cloneA.Path, true),
             changes: 0,
             deletes: 1);
@@ -425,8 +405,9 @@ commit file             master   |  |       |                   |              v
     {
         // set readonly git files to "normal" 
         // otherwise we get UnauthorizedAccessExceptions
-        var readOnlyFiles = _fileSystem.Directory.GetFiles(rootPath, "*.*", SearchOption.AllDirectories)
-                                       .Where(f => File.GetAttributes(f).HasFlag(FileAttributes.ReadOnly));
+        IEnumerable<string> readOnlyFiles = _fileSystem.Directory
+                                                       .GetFiles(rootPath, "*.*", SearchOption.AllDirectories)
+                                                       .Where(f => File.GetAttributes(f).HasFlag(FileAttributes.ReadOnly));
 
         foreach (var file in readOnlyFiles)
         {
@@ -451,5 +432,5 @@ commit file             master   |  |       |                   |              v
         Thread.Sleep(500);
     }
 
-    protected DefaultRepositoryMonitor Monitor { get; private set; }
+    
 }

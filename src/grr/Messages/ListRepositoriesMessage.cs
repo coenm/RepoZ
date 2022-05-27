@@ -8,11 +8,13 @@ namespace grr.Messages
         private readonly string _repositoryFilter;
 
         public ListRepositoriesMessage()
-            : this(null) { }
+        {
+            _repositoryFilter = string.Empty;
+        }
 
         public ListRepositoriesMessage(RepositoryFilterOptions filter)
         {
-            _repositoryFilter = filter?.RepositoryFilter ?? "";
+            _repositoryFilter = filter?.RepositoryFilter ?? string.Empty;
         }
 
         public void Execute(Repository[] repositories)

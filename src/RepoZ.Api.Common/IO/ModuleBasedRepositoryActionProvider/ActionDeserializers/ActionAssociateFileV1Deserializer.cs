@@ -12,12 +12,12 @@ public class ActionAssociateFileV1Deserializer : IActionDeserializer
         return "associate-file@1".Equals(type, StringComparison.CurrentCultureIgnoreCase);
     }
 
-    RepositoryAction IActionDeserializer.Deserialize(JToken jToken, ActionDeserializerComposition actionDeserializer)
+    RepositoryAction? IActionDeserializer.Deserialize(JToken jToken, ActionDeserializerComposition actionDeserializer)
     {
         return Deserialize(jToken);
     }
 
-    public RepositoryActionAssociateFileV1 Deserialize(JToken jToken)
+    private static RepositoryActionAssociateFileV1? Deserialize(JToken jToken)
     {
         return jToken.ToObject<RepositoryActionAssociateFileV1>();
     }

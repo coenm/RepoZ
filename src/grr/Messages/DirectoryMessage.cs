@@ -66,7 +66,7 @@ namespace grr.Messages
             }
         }
 
-        public virtual string GetRemoteCommand()
+        public virtual string? GetRemoteCommand()
         {
             if (!HasRemoteCommand)
             {

@@ -27,7 +27,7 @@ public class ActionCommandV1Mapper : IActionToRepositoryActionMapper
         return action is RepositoryActionCommandV1;
     }
 
-    bool IActionToRepositoryActionMapper.CanHandleMultipeRepositories()
+    bool IActionToRepositoryActionMapper.CanHandleMultipleRepositories()
     {
         return false;
     }
@@ -37,16 +37,21 @@ public class ActionCommandV1Mapper : IActionToRepositoryActionMapper
         return Map(action as RepositoryActionCommandV1, repository.First());
     }
 
-    public IEnumerable<Api.Git.RepositoryAction> Map(RepositoryActionCommandV1 action, Repository repository)
+    private IEnumerable<Api.Git.RepositoryAction> Map(RepositoryActionCommandV1? action, Repository repository)
     {
+        if (action == null)
+        {
+            yield break;
+        }
+
         if (!_expressionEvaluator.EvaluateBooleanExpression(action.Active, repository))
         {
             yield break;
         }
 
         var name = NameHelper.EvaluateName(action.Name, repository, _translationService, _expressionEvaluator);
-        var command = _expressionEvaluator.EvaluateStringExpression(action.Command, repository);
-        var arguments = _expressionEvaluator.EvaluateStringExpression(action.Arguments, repository); 
+        var command = _expressionEvaluator.EvaluateStringExpression(action.Command ?? string.Empty, repository);
+        var arguments = _expressionEvaluator.EvaluateStringExpression(action.Arguments ?? string.Empty, repository); 
 
         yield return new Api.Git.RepositoryAction
             {

@@ -16,8 +16,8 @@ namespace RepoZ.Api.Common.Git
         public event EventHandler<string> OnDeletionDetected;
         public event EventHandler<bool> OnScanStateChanged;
 
-        private List<IRepositoryDetector> _detectors = null;
-        private readonly Timer _storeFlushTimer = null;
+        private List<IRepositoryDetector>? _detectors;
+        private readonly Timer _storeFlushTimer;
         private readonly IRepositoryDetectorFactory _repositoryDetectorFactory;
         private readonly IRepositoryObserverFactory _repositoryObserverFactory;
         private readonly IGitRepositoryFinderFactory _gitRepositoryFinderFactory;
@@ -28,6 +28,7 @@ namespace RepoZ.Api.Common.Git
         private readonly IRepositoryIgnoreStore _repositoryIgnoreStore;
         private readonly Dictionary<string, IRepositoryObserver> _repositoryObservers;
         private readonly IFileSystem _fileSystem;
+        private readonly IAutoFetchHandler _autoFetchHandler;
 
         public DefaultRepositoryMonitor(
             IPathProvider pathProvider,
@@ -54,7 +55,7 @@ namespace RepoZ.Api.Common.Git
 
             _storeFlushTimer = new Timer(RepositoryStoreFlushTimerCallback, null, Timeout.Infinite, Timeout.Infinite);
 
-            AutoFetchHandler = autoFetchHandler ?? throw new ArgumentNullException(nameof(autoFetchHandler));
+            _autoFetchHandler = autoFetchHandler ?? throw new ArgumentNullException(nameof(autoFetchHandler));
         }
 
         public Task ScanForLocalRepositoriesAsync()
@@ -95,7 +96,7 @@ namespace RepoZ.Api.Common.Git
                 });
         }
 
-        private void RepositoryStoreFlushTimerCallback(object state)
+        private void RepositoryStoreFlushTimerCallback(object? state)
         {
             var heads = _repositoryInformationAggregator.Repositories.Select(v => v.Path).ToArray();
             _repositoryStore.Set(heads);
@@ -103,8 +104,8 @@ namespace RepoZ.Api.Common.Git
 
         private void OnFoundNewRepository(string file)
         {
-            Repository repo = _repositoryReader.ReadRepository(file);
-            if (repo.WasFound)
+            Repository? repo = _repositoryReader.ReadRepository(file);
+            if (repo?.WasFound ?? false)
             {
                 OnRepositoryChangeDetected(repo);
             }
@@ -112,8 +113,8 @@ namespace RepoZ.Api.Common.Git
 
         private void OnCheckKnownRepository(string file, KnownRepositoryNotifications notification)
         {
-            Repository repo = _repositoryReader.ReadRepository(file);
-            if (repo.WasFound)
+            Repository? repo = _repositoryReader.ReadRepository(file);
+            if (repo?.WasFound ?? false)
             {
                 if (notification.HasFlag(KnownRepositoryNotifications.WhenFound))
                 {
@@ -161,16 +162,16 @@ namespace RepoZ.Api.Common.Git
                 ObserveRepositoryChanges();
             }
 
-            _detectors.ForEach(w => w.Start());
+            _detectors?.ForEach(w => w.Start());
 
-            AutoFetchHandler.Active = true;
+            _autoFetchHandler.Active = true;
         }
 
         public void Reset()
         {
             Stop();
 
-            foreach (var observer in _repositoryObservers.Values)
+            foreach (IRepositoryObserver observer in _repositoryObservers.Values)
             {
                 observer.Stop();
                 observer.Dispose();
@@ -186,7 +187,7 @@ namespace RepoZ.Api.Common.Git
 
         public void Stop()
         {
-            AutoFetchHandler.Active = false;
+            _autoFetchHandler.Active = false;
             _detectors?.ForEach(w => w.Stop());
         }
 
@@ -212,7 +213,7 @@ namespace RepoZ.Api.Common.Git
 
         private void OnRepositoryChangeDetected(Repository repo)
         {
-            string path = repo?.Path;
+            var path = repo.Path;
 
             if (string.IsNullOrEmpty(path))
             {
@@ -271,13 +272,11 @@ namespace RepoZ.Api.Common.Git
             _repositoryInformationAggregator.RemoveByPath(repoPath);
         }
 
-        public bool Scanning { get; set; } = false;
+        public bool Scanning { get; private set; } = false;
 
         public int DelayGitRepositoryStatusAfterCreationMilliseconds { get; set; } = 5000;
 
         public int DelayGitStatusAfterFileOperationMilliseconds { get; set; } = 500;
-
-        public IAutoFetchHandler AutoFetchHandler { get; }
 
         [Flags]
         private enum KnownRepositoryNotifications

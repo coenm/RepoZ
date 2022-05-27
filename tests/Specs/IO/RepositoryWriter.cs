@@ -17,12 +17,11 @@ namespace Specs.IO
 
         public void InitBare()
         {
-            var path = Repository.Init(Path, isBare: true);
+            _ = Repository.Init(Path, isBare: true);
         }
 
         public void Clone(string sourcePath)
         {
-
             Repository.Clone(sourcePath, Path);
         }
 
@@ -89,7 +88,7 @@ namespace Specs.IO
             // ATTENTION:
             // param "onto" should be null when just rebasing to the given upstream:
             // https://libgit2.github.com/libgit2/#HEAD/group/rebase/git_rebase_init
-            Branch onto = null;
+            Branch? onto = null;
 
             RebaseResult result = repo.Rebase.Start(branch, target, onto, Identity, new RebaseOptions());
             return (int)result.TotalStepCount;
@@ -110,9 +109,9 @@ namespace Specs.IO
 
         public string Path { get; }
 
-        protected Identity Identity => new Identity("John Doe", "johndoe@anywhe.re");
+        private static Identity Identity => new Identity("John Doe", "johndoe@anywhe.re");
 
-        protected Signature Signature => new Signature(Identity, DateTimeOffset.Now);
+        private static Signature Signature => new Signature(Identity, DateTimeOffset.Now);
 
         public string CurrentBranch
         {

@@ -14,7 +14,7 @@ namespace RepoZ.App.Win.Converters
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            DateTime date = DateTime.SpecifyKind(DateTime.Parse(value.ToString()), DateTimeKind.Utc).ToLocalTime();
+            DateTime date = DateTime.SpecifyKind(DateTime.Parse(value.ToString() ?? string.Empty), DateTimeKind.Utc).ToLocalTime();
             return Humanizer.HumanizeTimestamp(date);
         }
 

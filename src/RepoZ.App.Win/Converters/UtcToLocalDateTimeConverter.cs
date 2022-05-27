@@ -8,7 +8,7 @@ namespace RepoZ.App.Win.Converters
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            return DateTime.SpecifyKind(DateTime.Parse(value.ToString()), DateTimeKind.Utc).ToLocalTime();
+            return DateTime.SpecifyKind(DateTime.Parse(value.ToString() ?? string.Empty), DateTimeKind.Utc).ToLocalTime();
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

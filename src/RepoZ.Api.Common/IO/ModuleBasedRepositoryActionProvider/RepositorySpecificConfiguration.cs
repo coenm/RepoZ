@@ -8,8 +8,6 @@ using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
 using DotNetEnv;
-using JetBrains.Annotations;
-using LibGit2Sharp;
 using RepoZ.Api.Common.Common;
 using RepoZ.Api.Common.IO.ExpressionEvaluator;
 using RepoZ.Api.Common.IO.ModuleBasedRepositoryActionProvider.ActionMappers;
@@ -18,11 +16,6 @@ using RepoZ.Api.IO;
 using Repository = RepoZ.Api.Git.Repository;
 using RepositoryAction = RepoZ.Api.Git.RepositoryAction;
 
-public interface IRepositoryTagsFactory
-{
-    IEnumerable<string> GetTags(RepoZ.Api.Git.Repository repository);
-}
-
 public class ConfigurationFileNotFoundException : Exception
 {
     public ConfigurationFileNotFoundException(string filename)
@@ -30,8 +23,9 @@ public class ConfigurationFileNotFoundException : Exception
         Filename = filename;
     }
 
-    protected ConfigurationFileNotFoundException([NotNull] SerializationInfo info, StreamingContext context) : base(info, context)
+    protected ConfigurationFileNotFoundException(SerializationInfo info, StreamingContext context) : base(info, context)
     {
+        Filename = string.Empty; //todo
     }
 
     public ConfigurationFileNotFoundException(string filename, string message) : base(message)
@@ -44,7 +38,7 @@ public class ConfigurationFileNotFoundException : Exception
         Filename = filename;
     }
 
-    public string Filename { get; set; }
+    public string Filename { get; private set; }
 }
 
 public class InvalidConfigurationException : Exception
@@ -54,8 +48,9 @@ public class InvalidConfigurationException : Exception
         Filename = filename;
     }
 
-    protected InvalidConfigurationException([NotNull] SerializationInfo info, StreamingContext context) : base(info, context)
+    protected InvalidConfigurationException(SerializationInfo info, StreamingContext context) : base(info, context)
     {
+        Filename = string.Empty; //todo
     }
 
     public InvalidConfigurationException(string filename, string message) : base(message)
@@ -68,7 +63,7 @@ public class InvalidConfigurationException : Exception
         Filename = filename;
     }
 
-    public string Filename { get; set; }
+    public string Filename { get; private set; }
 }
 
 public class RepositoryConfigurationReader
@@ -95,7 +90,7 @@ public class RepositoryConfigurationReader
 
     public (Dictionary<string, string> envVars, List<Variable> Variables, List<ActionsCollection> actions, List<TagsCollection> tags) Get(params RepoZ.Api.Git.Repository[] repositories)
     {
-        if (repositories == null || !repositories.Any())
+        if (!repositories.Any())
         {
             return (null, null, null, null);
         }
@@ -106,12 +101,7 @@ public class RepositoryConfigurationReader
             return (null, null, null, null);
         }
 
-        Repository singleRepository = null;
         var multipleRepositoriesSelected = repositories.Length > 1;
-        if (!multipleRepositoriesSelected)
-        {
-            singleRepository = repositories.FirstOrDefault();
-        }
 
         var variables = new List<Variable>();
         Dictionary<string, string> envVars = null;
@@ -119,8 +109,8 @@ public class RepositoryConfigurationReader
         var tags = new List<TagsCollection>();
 
         // load default file
-        RepositoryActionConfiguration rootFile = null;
-        RepositoryActionConfiguration repoSpecificConfig = null;
+        RepositoryActionConfiguration? rootFile = null;
+        RepositoryActionConfiguration? repoSpecificConfig = null;
 
         var filename = Path.Combine(_appDataPathProvider.GetAppDataPath(), FILENAME);
         if (!_fileSystem.File.Exists(filename))
@@ -138,7 +128,7 @@ public class RepositoryConfigurationReader
             throw new InvalidConfigurationException(filename, e.Message, e);
         }
         
-        Redirect redirect = rootFile?.Redirect;
+        Redirect? redirect = rootFile?.Redirect;
         if (!string.IsNullOrWhiteSpace(redirect?.Filename))
         {
             if (IsEnabled(redirect?.Enabled, true, null))
@@ -164,7 +154,7 @@ public class RepositoryConfigurationReader
             return (null, null, null, null);
         }
 
-        List<Variable> EvaluateVariables(IEnumerable<Variable> vars)
+        List<Variable> EvaluateVariables(IEnumerable<Variable>? vars)
         {
             if (vars == null)
             {
@@ -219,7 +209,7 @@ public class RepositoryConfigurationReader
             }
         }
 
-        using IDisposable repoSpecificEnvVariables = RepoZEnvironmentVariableStore.Set(envVars);
+        using IDisposable repoSpecificEnvVariables = RepoZEnvironmentVariableStore.Set(envVars ?? new Dictionary<string, string>(0));
 
         if (!multipleRepositoriesSelected)
         {
@@ -276,16 +266,21 @@ public class RepositoryConfigurationReader
         return (envVars, variables, actions, tags);
     }
 
-    private string Evaluate(string input, Repository repository)
+    private string Evaluate(string? input, Repository repository)
     {
-        return _repoExpressionEvaluator.EvaluateStringExpression(input, repository);
+        if (string.IsNullOrWhiteSpace(input))
+        {
+            return input ?? string.Empty;
+        }
+
+        return _repoExpressionEvaluator.EvaluateStringExpression(input!, repository);
     }
 
-    private bool IsEnabled(string booleanExpression, bool defaultWhenNullOrEmpty, Repository repository)
+    private bool IsEnabled(string? booleanExpression, bool defaultWhenNullOrEmpty, Repository? repository)
     {
         return string.IsNullOrWhiteSpace(booleanExpression)
             ? defaultWhenNullOrEmpty
-            : _repoExpressionEvaluator.EvaluateBooleanExpression(booleanExpression, repository);
+            : _repoExpressionEvaluator.EvaluateBooleanExpression(booleanExpression!, repository);
     }
 }
 
@@ -414,35 +409,17 @@ public class RepositorySpecificConfiguration
             throw new ArgumentNullException(nameof(repositories));
         }
 
-        Repository singleRepository = null;
+        Repository? singleRepository = null;
         var multiSelectRequired = repositories.Length > 1;
         if (!multiSelectRequired)
         {
             singleRepository = repositories.FirstOrDefault();
         }
 
-        List<Variable> EvaluateVariables(IEnumerable<Variable> vars)
-        {
-            if (vars == null)
-            {
-                return new List<Variable>(0);
-            }
-        
-            return vars
-                   .Where(v => IsEnabled(v.Enabled, true, singleRepository))
-                   .Select(v => new Variable()
-                       {
-                           Name = v.Name,
-                           Enabled = "true",
-                           Value = Evaluate(v.Value, singleRepository),
-                       })
-                   .ToList();
-        }
-
-        Dictionary<string, string> repositoryEnvVars = null;
-        List<Variable> variables = null;
-        List<ActionsCollection> actions = null;
-        Exception ex = null;
+        Dictionary<string, string>? repositoryEnvVars = null;
+        List<Variable>? variables = null;
+        List<ActionsCollection>? actions = null;
+        Exception? ex = null;
         try
         {
             (repositoryEnvVars,  variables, actions, _) = _repoConfigReader.Get(repositories);
@@ -472,17 +449,17 @@ public class RepositorySpecificConfiguration
             yield break;
         }
 
-        using IDisposable d1 = RepoZVariableProviderStore.Push(EvaluateVariables(variables ?? new List<Variable>()));
+        using IDisposable d1 = RepoZVariableProviderStore.Push(EvaluateVariables(variables, singleRepository));
         using IDisposable d2 = RepoZEnvironmentVariableStore.Set(repositoryEnvVars ?? new Dictionary<string, string>());
 
         // load variables global
-        foreach (ActionsCollection actionsCollection in actions.Where(action => action != null))
+        foreach (ActionsCollection actionsCollection in actions?.Where(action => action != null) ?? Array.Empty<ActionsCollection>())
         {
-            using IDisposable d3 = RepoZVariableProviderStore.Push(EvaluateVariables(actionsCollection.Variables));
+            using IDisposable d3 = RepoZVariableProviderStore.Push(EvaluateVariables(actionsCollection.Variables, singleRepository));
 
             foreach (Data.RepositoryAction action in actionsCollection.Actions)
             {
-                using IDisposable d4 = RepoZVariableProviderStore.Push(EvaluateVariables(action.Variables));
+                using IDisposable d4 = RepoZVariableProviderStore.Push(EvaluateVariables(action.Variables, singleRepository));
 
                 if (multiSelectRequired)
                 {
@@ -494,10 +471,6 @@ public class RepositorySpecificConfiguration
                 }
 
                 IEnumerable<RepositoryAction> result = _actionMapper.Map(action, repositories);
-                if (result == null)
-                {
-                    continue;
-                }
 
                 foreach (RepositoryAction singleItem in result)
                 {
@@ -507,7 +480,25 @@ public class RepositorySpecificConfiguration
         }
     }
 
-    private IEnumerable<RepositoryAction> CreateFailing(Exception ex, string filename)
+    private List<Variable> EvaluateVariables(IEnumerable<Variable>? vars, Repository? repository)
+    {
+        if (vars == null || repository == null)
+        {
+            return new List<Variable>(0);
+        }
+
+        return vars
+               .Where(v => IsEnabled(v.Enabled, true, repository))
+               .Select(v => new Variable()
+                   {
+                       Name = v.Name,
+                       Enabled = "true",
+                       Value = Evaluate(v.Value, repository),
+                   })
+               .ToList();
+    }
+
+    private IEnumerable<RepositoryAction> CreateFailing(Exception ex, string? filename)
     {
         yield return new RepositoryAction()
             {

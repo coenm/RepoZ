@@ -3,7 +3,6 @@ namespace RepoZ.Api.Common.IO.ModuleBasedRepositoryActionProvider.ActionDeserial
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Antlr4.Runtime;
 using Newtonsoft.Json.Linq;
 using RepoZ.Api.Common.IO.ModuleBasedRepositoryActionProvider.Data;
 using RepoZ.Api.Common.IO.ModuleBasedRepositoryActionProvider.Data.Actions;
@@ -15,14 +14,14 @@ public class ActionExecutableV1Deserializer : IActionDeserializer
         return "executable@1".Equals(type, StringComparison.CurrentCultureIgnoreCase);
     }
 
-    RepositoryAction IActionDeserializer.Deserialize(JToken jToken, ActionDeserializerComposition actionDeserializer)
+    RepositoryAction? IActionDeserializer.Deserialize(JToken jToken, ActionDeserializerComposition actionDeserializer)
     {
         return Deserialize(jToken);
     }
 
-    public RepositoryActionExecutableV1 Deserialize(JToken jToken)
+    private static RepositoryActionExecutableV1? Deserialize(JToken jToken)
     {
-        RepositoryActionExecutableV1 result = jToken.ToObject<RepositoryActionExecutableV1>();
+        RepositoryActionExecutableV1? result = jToken.ToObject<RepositoryActionExecutableV1>();
 
         if (result == null)
         {
@@ -34,7 +33,7 @@ public class ActionExecutableV1Deserializer : IActionDeserializer
             return result;
         }
 
-        JToken executableToken = jToken.SelectToken("executable");
+        JToken? executableToken = jToken.SelectToken("executable");
 
         if (executableToken == null)
         {
@@ -54,7 +53,7 @@ public class ActionExecutableV1Deserializer : IActionDeserializer
 
         result.Executables = new List<string>(1)
             {
-                executable,
+                executable!,
             };
 
         return result;

@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using JetBrains.Annotations;
 using RepoZ.Api.Common.Common;
 using RepoZ.Api.Common.IO.ExpressionEvaluator;
 using RepoZ.Api.Common.IO.ModuleBasedRepositoryActionProvider.Data.Actions;
@@ -29,7 +28,7 @@ public class ActionAssociateFileV1Mapper : IActionToRepositoryActionMapper
         return action is RepositoryActionAssociateFileV1;
     }
 
-    public bool CanHandleMultipeRepositories()
+    public bool CanHandleMultipleRepositories()
     {
         return false;
     }
@@ -39,23 +38,33 @@ public class ActionAssociateFileV1Mapper : IActionToRepositoryActionMapper
         return Map(action as RepositoryActionAssociateFileV1, repository.First());
     }
 
-    public IEnumerable<Api.Git.RepositoryAction> Map(RepositoryActionAssociateFileV1 action, Repository repository)
+    private IEnumerable<Api.Git.RepositoryAction> Map(RepositoryActionAssociateFileV1? action, Repository repository)
     {
+        if (action == null)
+        {
+            yield break;
+        }
+
         if (!_expressionEvaluator.EvaluateBooleanExpression(action.Active, repository))
         {
             yield break;
         }
 
         var name = NameHelper.EvaluateName(action.Name, repository, _translationService, _expressionEvaluator);
-        var command = _expressionEvaluator.EvaluateStringExpression(action.Command, repository);
+        // var command = _expressionEvaluator.EvaluateStringExpression(action.Command, repository);
 
         //todo no arguments needed.
         // var arguments = _expressionEvaluator.EvaluateStringExpression(action.Arguments, repository);
 
-        yield return CreateFileAssociationSubMenu(
+        Api.Git.RepositoryAction? menuItem = CreateFileAssociationSubMenu(
             repository,
             name,
             action.Extension);
+
+        if (menuItem != null)
+        {
+            yield return menuItem;
+        }
     }
 
     private Api.Git.RepositoryAction CreateProcessRunnerAction(string name, string process, string arguments = "")
@@ -67,7 +76,7 @@ public class ActionAssociateFileV1Mapper : IActionToRepositoryActionMapper
         };
     }
 
-    private Api.Git.RepositoryAction CreateFileAssociationSubMenu(Repository repository, string actionName, string filePattern)
+    private Api.Git.RepositoryAction? CreateFileAssociationSubMenu(Repository repository, string actionName, string filePattern)
     {
         if (!HasFiles(repository, filePattern))
         {

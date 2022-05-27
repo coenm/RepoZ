@@ -33,7 +33,7 @@ public class ActionIgnoreRepositoriesV1Mapper : IActionToRepositoryActionMapper
         return action is RepositoryActionIgnoreRepositoriesV1;
     }
 
-    bool IActionToRepositoryActionMapper.CanHandleMultipeRepositories()
+    bool IActionToRepositoryActionMapper.CanHandleMultipleRepositories()
     {
         return true;
     }

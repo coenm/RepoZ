@@ -5,11 +5,11 @@ namespace RepoZ.Api.Common.Git
     using System.IO;
     using System.Threading.Tasks;
 
-    public class DefaultRepositoryDetector : IRepositoryDetector, IDisposable
+    public sealed class DefaultRepositoryDetector : IRepositoryDetector, IDisposable
     {
         private const string HEAD_LOG_FILE = @".git\logs\HEAD";
 
-        private FileSystemWatcher _watcher;
+        private FileSystemWatcher? _watcher;
         private readonly IRepositoryReader _repositoryReader;
 
         public DefaultRepositoryDetector(IRepositoryReader repositoryReader)
@@ -18,6 +18,7 @@ namespace RepoZ.Api.Common.Git
         }
 
         public Action<Repository> OnAddOrChange { get; set; }
+
         public Action<string> OnDelete { get; set; }
 
         public void Setup(string path, int detectionToAlertDelayMilliseconds)
@@ -34,12 +35,18 @@ namespace RepoZ.Api.Common.Git
 
         public void Start()
         {
-            _watcher.EnableRaisingEvents = true;
+            if (_watcher != null)
+            {
+                _watcher.EnableRaisingEvents = true;
+            }
         }
 
         public void Stop()
         {
-            _watcher.EnableRaisingEvents = false;
+            if (_watcher != null)
+            {
+                _watcher.EnableRaisingEvents = false;
+            }
         }
 
         private void WatcherDeleted(object sender, FileSystemEventArgs e)
@@ -83,13 +90,13 @@ namespace RepoZ.Api.Common.Git
                 .ContinueWith(t => EatRepo(e.FullPath));
         }
 
-        private bool IsHead(string path)
+        private static bool IsHead(string path)
         {
             var index = GetGitPathEndFromHeadFile(path);
             return index == (path.Length - HEAD_LOG_FILE.Length);
         }
 
-        private string GetRepositoryPathFromHead(string headFile)
+        private static string GetRepositoryPathFromHead(string headFile)
         {
             var end = GetGitPathEndFromHeadFile(headFile);
 
@@ -108,7 +115,7 @@ namespace RepoZ.Api.Common.Git
 
         private void EatRepo(string path)
         {
-            Repository repo = _repositoryReader.ReadRepository(path);
+            Repository? repo = _repositoryReader.ReadRepository(path);
 
             if (repo?.WasFound ?? false)
             {
@@ -126,12 +133,6 @@ namespace RepoZ.Api.Common.Git
         }
 
         public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        protected virtual void Dispose(bool disposing)
         {
             if (_watcher != null)
             {

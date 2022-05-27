@@ -8,7 +8,7 @@ namespace RepoZ.Api.Git
     {
         public override bool Equals(object obj)
         {
-            if (!(obj is Repository other))
+            if (obj is not Repository other)
             {
                 return false;
             }
@@ -21,7 +21,7 @@ namespace RepoZ.Api.Git
             return string.Equals(Normalize(other.Path), Normalize(Path), StringComparison.OrdinalIgnoreCase);
         }
 
-        private string Normalize(string path)
+        private static string? Normalize(string path)
         {
             // yeah not that beautiful but we have to add a blackslash
             // or slash (depending on the OS) and on Mono, I dont have Path.PathSeparator.
@@ -49,7 +49,7 @@ namespace RepoZ.Api.Git
 
         public string[] LocalBranches { get; set; }
 
-        public string[] Tags { get; set; }
+        public string[] Tags { get; set; } = Array.Empty<string>();
 
         [System.ComponentModel.Browsable(false)]
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
@@ -60,12 +60,12 @@ namespace RepoZ.Api.Git
             return AllBranchesReader?.Invoke() ?? Array.Empty<string>();
         }
 
-        public static Repository Empty => new Repository()
-            {
-                Name = string.Empty,
-                CurrentBranch = string.Empty,
-                Path = string.Empty,
-            };
+        // public static Repository Empty => new Repository()
+        //     {
+        //         Name = string.Empty,
+        //         CurrentBranch = string.Empty,
+        //         Path = string.Empty,
+        //     };
 
         public bool CurrentBranchHasUpstream { get; set; }
 
@@ -104,7 +104,7 @@ namespace RepoZ.Api.Git
 
         public int? StashCount { get; set; }
 
-        public string[] RemoteUrls { get; set; }
+        public string[] RemoteUrls { get; set; } = Array.Empty<string>();
 
         public string SafePath
         {

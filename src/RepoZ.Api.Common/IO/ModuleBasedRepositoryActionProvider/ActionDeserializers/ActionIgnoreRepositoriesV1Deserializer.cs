@@ -12,12 +12,12 @@ public class ActionIgnoreRepositoriesV1Deserializer : IActionDeserializer
         return "ignore-repositories@1".Equals(type, StringComparison.CurrentCultureIgnoreCase);
     }
 
-    RepositoryAction IActionDeserializer.Deserialize(JToken jToken, ActionDeserializerComposition actionDeserializer)
+    RepositoryAction? IActionDeserializer.Deserialize(JToken jToken, ActionDeserializerComposition actionDeserializer)
     {
         return Deserialize(jToken);
     }
 
-    public RepositoryActionIgnoreRepositoriesV1 Deserialize(JToken jToken)
+    private static RepositoryActionIgnoreRepositoriesV1? Deserialize(JToken jToken)
     {
         return jToken.ToObject<RepositoryActionIgnoreRepositoriesV1>();
     }

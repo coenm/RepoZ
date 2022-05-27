@@ -29,7 +29,7 @@ public class ActionGitCheckoutV1Mapper : IActionToRepositoryActionMapper
         return action is RepositoryActionGitCheckoutV1;
     }
 
-    bool IActionToRepositoryActionMapper.CanHandleMultipeRepositories()
+    bool IActionToRepositoryActionMapper.CanHandleMultipleRepositories()
     {
         return false;
     }
@@ -39,8 +39,13 @@ public class ActionGitCheckoutV1Mapper : IActionToRepositoryActionMapper
         return Map(action as RepositoryActionGitCheckoutV1, repository.First());
     }
 
-    public IEnumerable<Api.Git.RepositoryAction> Map(RepositoryActionGitCheckoutV1 action, Repository repository)
+    public IEnumerable<Api.Git.RepositoryAction> Map(RepositoryActionGitCheckoutV1? action, Repository repository)
     {
+        if (action == null)
+        {
+            yield break;
+        }
+
         if (!_expressionEvaluator.EvaluateBooleanExpression(action.Active, repository))
         {
             yield break;

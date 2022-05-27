@@ -3,7 +3,6 @@ namespace RepoZ.Api.Common.IO.ModuleBasedRepositoryActionProvider.ActionMappers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using JetBrains.Annotations;
 using RepoZ.Api.Common.Common;
 using RepoZ.Api.Common.IO.ExpressionEvaluator;
 using RepoZ.Api.Common.IO.ModuleBasedRepositoryActionProvider.Data.Actions;
@@ -27,7 +26,7 @@ public class ActionBrowseRepositoryV1Mapper : IActionToRepositoryActionMapper
         return action is RepositoryActionBrowseRepositoryV1;
     }
 
-    bool IActionToRepositoryActionMapper.CanHandleMultipeRepositories()
+    bool IActionToRepositoryActionMapper.CanHandleMultipleRepositories()
     {
         return false;
     }
@@ -37,21 +36,26 @@ public class ActionBrowseRepositoryV1Mapper : IActionToRepositoryActionMapper
         return Map(action as RepositoryActionBrowseRepositoryV1, repository.First());
     }
 
-    public IEnumerable<Api.Git.RepositoryAction> Map(RepositoryActionBrowseRepositoryV1 action, Repository repository)
+    private IEnumerable<Api.Git.RepositoryAction> Map(RepositoryActionBrowseRepositoryV1? action, Repository repository)
     {
+        if (action == null)
+        {
+            yield break;
+        }
+
         if (!_expressionEvaluator.EvaluateBooleanExpression(action.Active, repository))
         {
             yield break;
         }
 
-        RepositoryAction result = CreateBrowseRemoteAction(repository, action);
+        RepositoryAction? result = CreateBrowseRemoteAction(repository, action);
         if (result != null)
         {
             yield return result;
         }
     }
 
-    private RepositoryAction CreateBrowseRemoteAction(Repository repository, RepositoryActionBrowseRepositoryV1 action = null)
+    private RepositoryAction? CreateBrowseRemoteAction(Repository repository, RepositoryActionBrowseRepositoryV1 action)
     {
         if (repository.RemoteUrls.Length == 0)
         {
@@ -59,7 +63,7 @@ public class ActionBrowseRepositoryV1Mapper : IActionToRepositoryActionMapper
         }
 
         var forceSingle = false;
-        if (!string.IsNullOrWhiteSpace(action?.FirstOnly))
+        if (!string.IsNullOrWhiteSpace(action.FirstOnly))
         {
             forceSingle = _expressionEvaluator.EvaluateBooleanExpression(action.FirstOnly, repository);
         }

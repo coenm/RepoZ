@@ -12,12 +12,12 @@ public class ActionSeparatorV1Deserializer : IActionDeserializer
         return "separator@1".Equals(type, StringComparison.CurrentCultureIgnoreCase);
     }
 
-    RepositoryAction IActionDeserializer.Deserialize(JToken jToken, ActionDeserializerComposition actionDeserializer)
+    RepositoryAction? IActionDeserializer.Deserialize(JToken jToken, ActionDeserializerComposition actionDeserializer)
     {
         return Deserialize(jToken);
     }
 
-    public RepositoryActionSeparatorV1 Deserialize(JToken jToken)
+    private static RepositoryActionSeparatorV1? Deserialize(JToken jToken)
     {
         return jToken.ToObject<RepositoryActionSeparatorV1>();
     }

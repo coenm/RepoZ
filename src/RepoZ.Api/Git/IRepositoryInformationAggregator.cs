@@ -8,7 +8,7 @@ namespace RepoZ.Api.Git
 
         void RemoveByPath(string path);
 
-        string GetStatusByPath(string path);
+        string? GetStatusByPath(string path);
 
         ObservableCollection<RepositoryView> Repositories { get; }
 

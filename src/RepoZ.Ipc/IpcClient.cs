@@ -9,8 +9,8 @@ namespace RepoZ.Ipc
 
     public class IpcClient
     {
-        private string _answer;
-        private Repository[] _repositories;
+        private string? _answer;
+        private Repository[]? _repositories;
 
         public IpcClient(IIpcEndpoint endpointProvider)
         {
@@ -22,8 +22,9 @@ namespace RepoZ.Ipc
             return GetRepositories("list:.*");
         }
 
-        public Result GetRepositories(string query)
+        public Result GetRepositories(string? query)
         {
+            query ??= string.Empty;
             var watch = Stopwatch.StartNew();
 
             _answer = null;
@@ -65,7 +66,7 @@ namespace RepoZ.Ipc
         {
             _answer = Encoding.UTF8.GetString(e.Socket.ReceiveFrameBytes());
 
-            _repositories = _answer.Split(new string[] { Environment.NewLine }, StringSplitOptions.None)
+            _repositories = _answer.Split(new string[] { Environment.NewLine, }, StringSplitOptions.None)
                                    .Select(s => Repository.FromString(s))
                                    .Where(r => r != null)
                                    .OrderBy(r => r.Name)
@@ -78,7 +79,7 @@ namespace RepoZ.Ipc
         {
             public string Answer { get; set; }
             public long DurationMilliseconds { get; set; }
-            public Repository[] Repositories { get; set; }
+            public Repository[] Repositories { get; set; } = Array.Empty<Repository>();
         }
     }
 }

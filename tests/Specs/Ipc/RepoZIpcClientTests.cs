@@ -8,15 +8,14 @@ namespace Specs.Ipc
 
     public class RepoZIpcClientTests
     {
-        private Mock<IRepositorySource> _repositorySource;
-        private IpcClient _client;
-        private IpcServer _server;
+        private readonly Mock<IRepositorySource> _repositorySource = new Mock<IRepositorySource>();
+        private IpcClient _client = null!;
+        private IpcServer _server = null!;
 
         [SetUp]
         public void Setup()
         {
             var endpoint = new TestIpcEndpoint();
-            _repositorySource = new Mock<IRepositorySource>();
 
             _client = new IpcClient(endpoint);
             _server = new IpcServer(endpoint, _repositorySource.Object);

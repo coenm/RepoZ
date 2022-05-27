@@ -23,7 +23,7 @@ public class ActionSeparatorV1Mapper : IActionToRepositoryActionMapper
         return action is RepositoryActionSeparatorV1;
     }
 
-    public bool CanHandleMultipeRepositories()
+    public bool CanHandleMultipleRepositories()
     {
         return true;
     }
@@ -42,8 +42,13 @@ public class ActionSeparatorV1Mapper : IActionToRepositoryActionMapper
         return Array.Empty<Api.Git.RepositoryAction>();
     }
 
-    public IEnumerable<Api.Git.RepositoryAction> Map(RepositoryActionSeparatorV1 action, Repository repository)
+    private IEnumerable<Api.Git.RepositoryAction> Map(RepositoryActionSeparatorV1? action, Repository repository)
     {
+        if (action == null)
+        {
+            yield break;
+        }
+
         if (!_expressionEvaluator.EvaluateBooleanExpression(action.Active, repository))
         {
             yield break;

@@ -11,7 +11,7 @@ namespace RepoZ.Api.Git
     {
         public string Name { get; set; }
 
-        public Action<object, object> Action { get; set; }
+        public Action<object?, object> Action { get; set; }
 
         public bool ExecutionCausesSynchronizing { get; set; }
 

@@ -1,100 +1,98 @@
-namespace RepoZ.App.Win
+namespace RepoZ.App.Win;
+
+using RepoZ.Api.Common.Common;
+using RepoZ.Api.Common.Git.AutoFetch;
+using System;
+using System.ComponentModel;
+using System.Linq;
+
+public class MainWindowPageModel : INotifyPropertyChanged
 {
-    using RepoZ.Api.Common.Common;
-    using RepoZ.Api.Common.Git.AutoFetch;
-    using System;
-    using System.ComponentModel;
-    using System.Linq;
+    private readonly IAppSettingsService _appSettingsService;
+    public event PropertyChangedEventHandler? PropertyChanged;
 
-    public class MainWindowPageModel : INotifyPropertyChanged
+    public MainWindowPageModel(IAppSettingsService appSettingsService)
     {
-        public event PropertyChangedEventHandler PropertyChanged;
+        _appSettingsService = appSettingsService ?? throw new ArgumentNullException(nameof(appSettingsService));
+    }
 
-        public MainWindowPageModel(IAppSettingsService appSettingsService)
+    public AutoFetchMode AutoFetchMode
+    {
+        get => _appSettingsService.AutoFetchMode;
+        set
         {
-            AppSettingsService = appSettingsService ?? throw new ArgumentNullException(nameof(appSettingsService));
+            _appSettingsService.AutoFetchMode = value;
+
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(AutoFetchMode)));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(AutoFetchOff)));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(AutoFetchDiscretely)));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(AutoFetchAdequate)));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(AutoFetchAggressive)));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(EnabledSearchRepoEverything)));
         }
+    }
 
-        public AutoFetchMode AutoFetchMode
+    public bool AutoFetchOff
+    {
+        get => AutoFetchMode == AutoFetchMode.Off;
+        set => AutoFetchMode = AutoFetchMode.Off;
+    }
+
+    public bool AutoFetchDiscretely
+    {
+        get => AutoFetchMode == AutoFetchMode.Discretely;
+        set => AutoFetchMode = AutoFetchMode.Discretely;
+    }
+
+    public bool AutoFetchAdequate
+    {
+        get => AutoFetchMode == AutoFetchMode.Adequate;
+        set => AutoFetchMode = AutoFetchMode.Adequate;
+    }
+
+    public bool AutoFetchAggressive
+    {
+        get => AutoFetchMode == AutoFetchMode.Aggressive;
+        set => AutoFetchMode = AutoFetchMode.Aggressive;
+    }
+
+    public bool PruneOnFetch
+    {
+        get => _appSettingsService.PruneOnFetch;
+        set => _appSettingsService.PruneOnFetch = value;
+    }
+
+    public bool EnabledSearchRepoEverything
+    {
+        get => _appSettingsService.EnabledSearchProviders.Any(item => "Everything".Equals(item, StringComparison.CurrentCultureIgnoreCase));
+        set
         {
-            get => AppSettingsService.AutoFetchMode;
-            set
+            if (value)
             {
-                AppSettingsService.AutoFetchMode = value;
+                if (EnabledSearchRepoEverything)
+                {
+                    return;
+                }
 
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(AutoFetchMode)));
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(AutoFetchOff)));
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(AutoFetchDiscretely)));
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(AutoFetchAdequate)));
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(AutoFetchAggressive)));
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(EnabledSearchRepoEverything)));
+                var list = _appSettingsService.EnabledSearchProviders.ToList();
+                list.Add("Everything");
+                _appSettingsService.EnabledSearchProviders = list;
             }
-        }
-
-        public bool AutoFetchOff
-        {
-            get => AutoFetchMode == AutoFetchMode.Off;
-            set => AutoFetchMode = AutoFetchMode.Off;
-        }
-
-        public bool AutoFetchDiscretely
-        {
-            get => AutoFetchMode == AutoFetchMode.Discretely;
-            set => AutoFetchMode = AutoFetchMode.Discretely;
-        }
-
-        public bool AutoFetchAdequate
-        {
-            get => AutoFetchMode == AutoFetchMode.Adequate;
-            set => AutoFetchMode = AutoFetchMode.Adequate;
-        }
-
-        public bool AutoFetchAggressive
-        {
-            get => AutoFetchMode == AutoFetchMode.Aggressive;
-            set => AutoFetchMode = AutoFetchMode.Aggressive;
-        }
-
-        public bool PruneOnFetch
-        {
-            get => AppSettingsService.PruneOnFetch;
-            set => AppSettingsService.PruneOnFetch = value;
-        }
-
-        public bool EnabledSearchRepoEverything
-        {
-            get => AppSettingsService.EnabledSearchProviders.Any(item => "Everything".Equals(item, StringComparison.CurrentCultureIgnoreCase));
-            set
+            else
             {
-                if (value)
+                if (!EnabledSearchRepoEverything)
                 {
-                    if (EnabledSearchRepoEverything)
-                    {
-                        return;
-                    }
-
-                    var list = AppSettingsService.EnabledSearchProviders.ToList();
-                    list.Add("Everything");
-                    AppSettingsService.EnabledSearchProviders = list;
+                    return;
                 }
-                else
+
+                var list = _appSettingsService.EnabledSearchProviders.ToList();
+                var count = list.RemoveAll(item => "Everything".Equals(item, StringComparison.CurrentCultureIgnoreCase));
+                if (count > 0)
                 {
-                    if (!EnabledSearchRepoEverything)
-                    {
-                        return;
-                    }
-
-                    var list = AppSettingsService.EnabledSearchProviders.ToList();
-                    var count = list.RemoveAll(item => "Everything".Equals(item, StringComparison.CurrentCultureIgnoreCase));
-                    if (count > 0)
-                    {
-                        AppSettingsService.EnabledSearchProviders = list;
-                    }
+                    _appSettingsService.EnabledSearchProviders = list;
                 }
+            }
                 
-            }
         }
-
-        public IAppSettingsService AppSettingsService { get; }
     }
 }

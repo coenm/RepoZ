@@ -18,7 +18,7 @@ namespace RepoZ.Plugin.WindowsExplorerGitInfo.PInvoke
     /// </remarks>
     internal class Combridge : IDisposable
     {
-        private Lazy<Type> _comType;
+        private readonly Lazy<Type> _comType;
 
         /// <summary>
         /// Creates a new instance of the Combridge COM wrapper class.
@@ -42,7 +42,6 @@ namespace RepoZ.Plugin.WindowsExplorerGitInfo.PInvoke
             }
 
             ComObject = null;
-            _comType = null;
         }
 
         /// <summary>
@@ -83,6 +82,6 @@ namespace RepoZ.Plugin.WindowsExplorerGitInfo.PInvoke
         /// <summary>
         /// Gets the wrapped COM object for native access.
         /// </summary>
-        public object ComObject { get; private set; }
+        private object? ComObject { get; set; }
     }
 }

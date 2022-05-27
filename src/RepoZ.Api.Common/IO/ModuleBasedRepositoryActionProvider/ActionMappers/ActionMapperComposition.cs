@@ -3,9 +3,6 @@ namespace RepoZ.Api.Common.IO.ModuleBasedRepositoryActionProvider.ActionMappers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using JetBrains.Annotations;
-using Newtonsoft.Json.Linq;
 using RepoZ.Api.Common.IO.ExpressionEvaluator;
 using RepoZ.Api.Common.IO.ModuleBasedRepositoryActionProvider.Data;
 using RepoZ.Api.Git;
@@ -19,20 +16,15 @@ public class ActionMapperComposition
     public ActionMapperComposition(IEnumerable<IActionToRepositoryActionMapper> deserializers, RepositoryExpressionEvaluator repoExpressionEvaluator)
     {
         _repoExpressionEvaluator = repoExpressionEvaluator ?? throw new ArgumentNullException(nameof(repoExpressionEvaluator));
-        _deserializers = deserializers?.Where(x => x != null).ToArray() ?? throw new ArgumentNullException(nameof(deserializers));
+        _deserializers = deserializers.Where(x => x != null).ToArray() ?? throw new ArgumentNullException(nameof(deserializers));
     }
 
     public IEnumerable<RepositoryAction> Map(RepoZ.Api.Common.IO.ModuleBasedRepositoryActionProvider.Data.RepositoryAction action, params RepoZ.Api.Git.Repository[] repositories)
     {
-        Repository singleRepository = repositories.Length <= 1 ? repositories.SingleOrDefault() : null;
+        Repository? singleRepository = repositories.Length <= 1 ? repositories.SingleOrDefault() : null;
         
         List<Variable> EvaluateVariables(IEnumerable<Variable> vars)
         {
-            if (vars == null)
-            {
-                return new List<Variable>(0);
-            }
-
             if (singleRepository == null)
             {
                 return new List<Variable>(0);
@@ -49,11 +41,11 @@ public class ActionMapperComposition
                    .ToList();
         }
 
-        IActionToRepositoryActionMapper deserializer = _deserializers.FirstOrDefault(x => x.CanMap(action));
+        IActionToRepositoryActionMapper? deserializer = _deserializers.FirstOrDefault(x => x.CanMap(action));
 
         using IDisposable disposable = RepoZVariableProviderStore.Push(EvaluateVariables(action.Variables));
 
-        IEnumerable<RepositoryAction> result = deserializer?.Map(action, repositories, this);
+        IEnumerable<RepositoryAction> result = deserializer?.Map(action, repositories, this) ?? Enumerable.Empty<RepositoryAction>();
 
         return result;
 

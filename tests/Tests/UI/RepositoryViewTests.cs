@@ -8,9 +8,9 @@ namespace Tests.UI
 
     public class RepositoryViewTests
     {
-        private Repository _repo;
-        private RepositoryView _view;
-        private StatusCharacterMap _statusCharacterMap;
+        private Repository _repo = null!;
+        private RepositoryView _view = null!;
+        private StatusCharacterMap _statusCharacterMap = null!;
 
         [SetUp]
         public void Setup()
@@ -25,7 +25,7 @@ namespace Tests.UI
             [Test]
             public void Throws_If_Null_Is_Passed_As_Argument()
             {
-                Action act = () => _ = new RepositoryView(null);
+                Action act = () => _ = new RepositoryView(null!);
                 act.Should().Throw<ArgumentNullException>();
             }
         }

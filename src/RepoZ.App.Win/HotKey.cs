@@ -27,8 +27,8 @@ namespace RepoZ.App.Win
         public const uint MOD_WIN = 0x0008;
 
         private IntPtr _handle;
-        private Action _hotKeyActionToCall;
-        private HwndSource _source;
+        private Action? _hotKeyActionToCall;
+        private HwndSource? _source;
         private readonly int _id;
 
         public HotKey(int id)

@@ -10,12 +10,15 @@ namespace RepoZ.Api.Common.Git
 
     public class DefaultRepositoryIgnoreStore : FileRepositoryStore, IRepositoryIgnoreStore
     {
-        private List<string> _ignores = null;
-        private IEnumerable<IgnoreRule> _rules;
-        private readonly object _lock = new object();
+        private List<string>? _ignores;
+        private IEnumerable<IgnoreRule>? _rules;
+        private readonly object _lock = new();
         private readonly string _fullFilename;
 
-        public DefaultRepositoryIgnoreStore(IErrorHandler errorHandler, IAppDataPathProvider appDataPathProvider, IFileSystem fileSystem)
+        public DefaultRepositoryIgnoreStore(
+            IErrorHandler errorHandler,
+            IAppDataPathProvider appDataPathProvider,
+            IFileSystem fileSystem)
             : base(errorHandler, fileSystem)
         {
             AppDataPathProvider = appDataPathProvider ?? throw new ArgumentNullException(nameof(appDataPathProvider));
@@ -42,7 +45,7 @@ namespace RepoZ.Api.Common.Git
                 UpdateRules();
             }
 
-            return _rules.Any(r => r.IsIgnored(path));
+            return _rules?.Any(r => r.IsIgnored(path)) ?? false;
         }
 
         public void Reset()
@@ -57,13 +60,20 @@ namespace RepoZ.Api.Common.Git
         {
             get
             {
-                if (_ignores == null)
+                if (_ignores != null)
                 {
-                    lock (_lock)
+                    return _ignores;
+                }
+
+                lock (_lock)
+                {
+                    if (_ignores != null)
                     {
-                        _ignores = Get()?.ToList() ?? new List<string>();
-                        UpdateRules();
+                        return _ignores;
                     }
+
+                    _ignores = Get()?.ToList() ?? new List<string>();
+                    UpdateRules();
                 }
 
                 return _ignores;

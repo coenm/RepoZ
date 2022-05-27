@@ -21,7 +21,7 @@ namespace RepoZ.Api.Common.Git.ProcessExecution
         /// </summary>
         public string Command(Api.Git.Repository repository, params string[] command)
         {
-            string retVal = null;
+            var retVal = string.Empty;
             CommandOutputPipe(repository, output => retVal = output, command);
             return retVal;
         }
@@ -31,7 +31,7 @@ namespace RepoZ.Api.Common.Git.ProcessExecution
         /// </summary>
         public string CommandOneline(Api.Git.Repository repository, params string[] command)
         {
-            string retVal = null;
+            var retVal = string.Empty;
             CommandOutputPipe(repository, output => retVal = output, command);
             return retVal;
         }
@@ -106,7 +106,7 @@ namespace RepoZ.Api.Common.Git.ProcessExecution
             startInfo.StandardErrorEncoding = _encoding;
         }
 
-        protected virtual string Start(Api.Git.Repository repository, string[] command, Action<ProcessStartInfo> initialize)
+        private string Start(Api.Git.Repository repository, string[] command, Action<ProcessStartInfo> initialize)
         {
             var timeout = (int)TimeSpan.FromSeconds(10).TotalMilliseconds;
 
@@ -204,7 +204,7 @@ namespace RepoZ.Api.Common.Git.ProcessExecution
             }
         }
 
-        public static void SetArguments(ProcessStartInfo startInfo, params string[] args)
+        private static void SetArguments(ProcessStartInfo startInfo, params string[] args)
         {
             startInfo.Arguments = string.Join(" ", args.Select(QuoteProcessArgument).ToArray());
         }

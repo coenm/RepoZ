@@ -15,16 +15,13 @@ using ExpressionStringEvaluator.VariableProviders.DateTime;
 using ExpressionStringEvaluator.VariableProviders;
 using FakeItEasy;
 using RepoZ.Api.Common.Common;
-using RepoZ.Api.Common.Git;
 using RepoZ.Api.Common.IO;
 using RepoZ.Api.Common.IO.ExpressionEvaluator;
 using RepoZ.Api.Common.IO.ModuleBasedRepositoryActionProvider;
-using RepoZ.Api.Common.IO.ModuleBasedRepositoryActionProvider.ActionDeserializers;
 using RepoZ.Api.Git;
 using RepoZ.Api.IO;
 using VerifyXunit;
 using Xunit;
-using RepoZ.Api.Common.IO.ModuleBasedRepositoryActionProvider.ActionMappers;
 using RepoZ.Api.Common.Tests.IO.ModuleBasedRepositoryActionProvider;
 
 [UsesEasyTestFile]
@@ -45,7 +42,7 @@ public class DefaultRepositoryActionProviderTest
         A.CallTo(() => _appDataPathProvider.GetAppDataPath()).Returns("GetAppDataPath");
         A.CallTo(() => _appDataPathProvider.GetAppResourcesPath()).Returns("GetAppResourcesPath");
 
-        A.CallTo(() => _translationService.Translate(A<string>._)).ReturnsLazily(call => call.Arguments[0] as string);
+        A.CallTo(() => _translationService.Translate(A<string>._)).ReturnsLazily(call => (call.Arguments[0] as string)!);
 
         var dateTimeTimeVariableProviderOptions = new DateTimeVariableProviderOptions()
         {

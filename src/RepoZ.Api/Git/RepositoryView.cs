@@ -5,24 +5,12 @@ namespace RepoZ.Api.Git
     using System.ComponentModel;
     using System.Linq;
 
-    public class TagViewModel
-    {
-        private readonly string _tag;
-
-        public TagViewModel(string tag)
-        {
-            _tag = tag;
-        }
-
-        public string Tag => _tag;
-    }
-
     [DebuggerDisplay("{Name} @{Path}")]
     public class RepositoryView : IRepositoryView, INotifyPropertyChanged
     {
-        private string _cachedRepositoryStatusCode;
-        private string _cachedRepositoryStatus;
-        private string _cachedRepositoryStatusWithBranch;
+        private string? _cachedRepositoryStatusCode;
+        private string? _cachedRepositoryStatus;
+        private string? _cachedRepositoryStatusWithBranch;
         private bool _isSynchronizing;
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -48,7 +36,7 @@ namespace RepoZ.Api.Git
             var repositoryStatusCode = Repository.GetStatusCode();
 
             // compare the status code and not the full status string because the latter one is heavier to calculate
-            var canTakeFromCache = _cachedRepositoryStatusCode == repositoryStatusCode;
+            var canTakeFromCache = string.Equals(_cachedRepositoryStatusCode, repositoryStatusCode, StringComparison.CurrentCulture);
 
             if (!canTakeFromCache)
             {
@@ -115,7 +103,7 @@ namespace RepoZ.Api.Git
             get
             {
                 EnsureStatusCache();
-                return _cachedRepositoryStatus;
+                return _cachedRepositoryStatus!;
             }
         }
 
@@ -124,7 +112,7 @@ namespace RepoZ.Api.Git
             get
             {
                 EnsureStatusCache();
-                return _cachedRepositoryStatusWithBranch;
+                return _cachedRepositoryStatusWithBranch!;
             }
         }
 
@@ -141,6 +129,5 @@ namespace RepoZ.Api.Git
         private string SyncAppendix => "  \u2191\u2193"; // up and down arrows
 
         public DateTime UpdateStampUtc { get; private set; }
-
     }
 }

@@ -1,6 +1,7 @@
-﻿namespace RepoZ.Plugin.IpcService
+namespace RepoZ.Plugin.IpcService
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using System.Text;
     using System.Threading;
@@ -11,12 +12,14 @@
 
     internal class IpcServer : IDisposable
     {
-        private ResponseSocket _socketServer;
+        private ResponseSocket? _socketServer;
+        private readonly IIpcEndpoint _endpointProvider;
+        private readonly IRepositorySource _repositorySource;
 
         public IpcServer(IIpcEndpoint endpointProvider, IRepositorySource repositorySource)
         {
-            EndpointProvider = endpointProvider ?? throw new ArgumentNullException(nameof(endpointProvider));
-            RepositorySource = repositorySource ?? throw new ArgumentNullException(nameof(repositorySource));
+            _endpointProvider = endpointProvider ?? throw new ArgumentNullException(nameof(endpointProvider));
+            _repositorySource = repositorySource ?? throw new ArgumentNullException(nameof(repositorySource));
         }
 
         public void Start()
@@ -26,11 +29,11 @@
 
         private void StartInternal()
         {
-            _socketServer = new ResponseSocket(EndpointProvider.Address);
+            _socketServer = new ResponseSocket(_endpointProvider.Address);
 
             while (true)
             {
-                var load = _socketServer.ReceiveFrameBytes(out bool hasMore);
+                var load = _socketServer.ReceiveFrameBytes(out var hasMore);
 
                 var message = Encoding.UTF8.GetString(load);
 
@@ -46,12 +49,12 @@
                     var answer = "(no repositories found)";
                     try
                     {
-                        Ipc.Repository[] repos = RepositorySource.GetMatchingRepositories(repositoryNamePattern);
+                        Ipc.Repository[] repos = _repositorySource.GetMatchingRepositories(repositoryNamePattern);
                         if (repos.Any())
                         {
-                            var serializedRepositories = repos
-                                                         .Where(r => r != null)
-                                                         .Select(r => r.ToString());
+                            IEnumerable<string> serializedRepositories = repos
+                                                                         .Where(r => r != null)
+                                                                         .Select(r => r.ToString());
 
                             answer = string.Join(Environment.NewLine, serializedRepositories);
                         }
@@ -70,26 +73,14 @@
 
         public void Stop()
         {
-            Dispose(true);
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                _socketServer?.Disconnect(EndpointProvider.Address);
-                _socketServer?.Dispose();
-                _socketServer = null;
-            }
+            Dispose();
         }
 
         public void Dispose()
         {
-            Dispose(true);
+            _socketServer?.Disconnect(_endpointProvider.Address);
+            _socketServer?.Dispose();
+            _socketServer = null;
         }
-
-        public IIpcEndpoint EndpointProvider { get; }
-
-        public IRepositorySource RepositorySource { get; }
     }
 }

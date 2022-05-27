@@ -16,7 +16,7 @@ public class ActionFolderV1Mapper : IActionToRepositoryActionMapper
     private readonly ITranslationService _translationService;
     private readonly IErrorHandler _errorHandler;
 
-    public ActionFolderV1Mapper(RepositoryExpressionEvaluator expressionEvaluator, [NotNull] ITranslationService translationService, IErrorHandler errorHandler)
+    public ActionFolderV1Mapper(RepositoryExpressionEvaluator expressionEvaluator, ITranslationService translationService, IErrorHandler errorHandler)
     {
         _expressionEvaluator = expressionEvaluator ?? throw new ArgumentNullException(nameof(expressionEvaluator));
         _translationService = translationService ?? throw new ArgumentNullException(nameof(translationService));
@@ -28,7 +28,7 @@ public class ActionFolderV1Mapper : IActionToRepositoryActionMapper
         return action is RepositoryActionFolderV1;
     }
 
-    bool IActionToRepositoryActionMapper.CanHandleMultipeRepositories()
+    bool IActionToRepositoryActionMapper.CanHandleMultipleRepositories()
     {
         return false;
     }
@@ -38,8 +38,13 @@ public class ActionFolderV1Mapper : IActionToRepositoryActionMapper
         return Map(action as RepositoryActionFolderV1, repository.First(), actionMapperComposition);
     }
 
-    private IEnumerable<Api.Git.RepositoryAction> Map(RepositoryActionFolderV1 action, Repository repository, ActionMapperComposition actionMapperComposition)
+    private IEnumerable<Api.Git.RepositoryAction> Map(RepositoryActionFolderV1? action, Repository repository, ActionMapperComposition actionMapperComposition)
     {
+        if (action == null)
+        {
+            yield break;
+        }
+
         if (!_expressionEvaluator.EvaluateBooleanExpression(action.Active, repository))
         {
             yield break;

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 public class RepositoryActionConfiguration
 {
-    public Redirect Redirect { get; set; }
+    public Redirect? Redirect { get; set; }
 
     public List<FileReference> RepositorySpecificEnvironmentFiles { get; set; } = new List<FileReference>();
 

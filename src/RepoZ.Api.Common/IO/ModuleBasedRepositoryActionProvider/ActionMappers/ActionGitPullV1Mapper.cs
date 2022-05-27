@@ -29,7 +29,7 @@ public class ActionGitPullV1Mapper : IActionToRepositoryActionMapper
         return action is RepositoryActionGitPullV1;
     }
 
-    bool IActionToRepositoryActionMapper.CanHandleMultipeRepositories()
+    bool IActionToRepositoryActionMapper.CanHandleMultipleRepositories()
     {
         return true;
     }

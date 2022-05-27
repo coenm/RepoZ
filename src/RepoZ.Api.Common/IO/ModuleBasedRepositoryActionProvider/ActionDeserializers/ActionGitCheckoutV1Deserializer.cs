@@ -12,12 +12,12 @@ public class ActionGitCheckoutV1Deserializer : IActionDeserializer
         return "git-checkout@1".Equals(type, StringComparison.CurrentCultureIgnoreCase);
     }
 
-    RepositoryAction IActionDeserializer.Deserialize(JToken jToken, ActionDeserializerComposition actionDeserializer)
+    RepositoryAction? IActionDeserializer.Deserialize(JToken jToken, ActionDeserializerComposition actionDeserializer)
     {
         return Deserialize(jToken);
     }
 
-    public RepositoryActionGitCheckoutV1 Deserialize(JToken jToken)
+    private static RepositoryActionGitCheckoutV1? Deserialize(JToken jToken)
     {
         return jToken.ToObject<RepositoryActionGitCheckoutV1>();
     }

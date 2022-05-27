@@ -29,11 +29,11 @@ namespace grr
             }
             else
             {
-                IMessage message = TryParseArgumentsToMessage(args);
+                IMessage? message = TryParseArgumentsToMessage(args);
 
                 if (message != null)
                 {
-                    IpcClient.Result result = null;
+                    IpcClient.Result? result = null;
 
                     if (message.HasRemoteCommand)
                     {
@@ -53,9 +53,14 @@ namespace grr
                         }
                     }
 
-                    message?.Execute(result?.Repositories);
+                    Repository[]? repositories = result?.Repositories;
 
-                    WriteHistory(result?.Repositories);
+                    if (repositories != null)
+                    {
+                        message?.Execute(repositories);
+
+                        WriteHistory(repositories);
+                    }
                 }
                 else
                 {
@@ -69,7 +74,7 @@ namespace grr
             }
         }
 
-        private static IMessage TryParseArgumentsToMessage(string[] args)
+        private static IMessage? TryParseArgumentsToMessage(IReadOnlyList<string> args)
         {
             try
             {
@@ -80,14 +85,14 @@ namespace grr
                     return null;
                 }
 
-                var options = parseResult.GetType().GetProperty("Value").GetValue(parseResult) as RepositoryFilterOptions;
+                RepositoryFilterOptions? options = parseResult.GetType().GetProperty("Value").GetValue(parseResult) as RepositoryFilterOptions;
 
                 // yes, that's a hack. I feel not good about it. The CommandLineParser seems not to be able to parse "cd -" since version 2.3.0 anymore
                 // and here we are, hacking our way around it ...
                 if (options != null)
                 {
                     if (options.RepositoryFilter == null
-                        && args.Length == 2
+                        && args.Count == 2
                         && ("cd".Equals(args[0], StringComparison.OrdinalIgnoreCase) || "gd".Equals(args[0], StringComparison.OrdinalIgnoreCase))
                         && args[1] == "-")
                     {
@@ -95,7 +100,9 @@ namespace grr
                     }
                 }
 
-                return GetMessage(options);
+                return options != null
+                    ? GetMessage(options)
+                    : null;
             }
             catch
             {
@@ -160,7 +167,7 @@ namespace grr
 
         private static string[] PrepareArguments(string[] args)
         {
-            if (args?.Length == 0)
+            if (args.Length == 0)
             {
                 args = new string[] { CommandLineOptions.LIST_COMMAND, };
             }

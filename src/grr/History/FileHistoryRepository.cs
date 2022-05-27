@@ -28,13 +28,17 @@ namespace grr.History
             if (!state.OverwriteRepositories)
             {
                 State oldState = Load();
-                if (oldState?.LastRepositories?.Length > 0)
+                if (oldState.LastRepositories?.Length > 0)
                 {
                     state.LastRepositories = oldState.LastRepositories;
                 }
             }
 
-            var lines = new string[] { state?.LastLocation ?? "", Serialize(state?.LastRepositories ?? Array.Empty<Repository>()) };
+            var lines = new []
+                {
+                    state.LastLocation ?? string.Empty,
+                    Serialize(state.LastRepositories ?? Array.Empty<Repository>()),
+                };
 
             try
             {
@@ -48,7 +52,7 @@ namespace grr.History
 
         public State Load()
         {
-            string[] lines = null;
+            var lines = Array.Empty<string>();
 
             try
             {
@@ -59,19 +63,19 @@ namespace grr.History
                 /* safely ignore this, reading the state is optional */
             }
 
-            if (lines?.Length != 2)
+            if (lines.Length != 2)
             {
                 return new State()
                     {
                         LastLocation = string.Empty,
-                        LastRepositories = Array.Empty<Repository>()
+                        LastRepositories = Array.Empty<Repository>(),
                     };
             }
 
             return new State()
                 {
                     LastLocation = lines[0],
-                    LastRepositories = Deserialize(lines[1])
+                    LastRepositories = Deserialize(lines[1]),
                 };
         }
 
@@ -82,11 +86,6 @@ namespace grr.History
 
         private static string Serialize(IEnumerable<Repository> repositories)
         {
-            if (repositories == null)
-            {
-                return string.Empty;
-            }
-
             var names = repositories
                         .Select(r => r.Name)
                         .ToArray();
@@ -107,7 +106,7 @@ namespace grr.History
             }
 
             return repositoryString
-                   .Split(new string[] { "|", }, StringSplitOptions.None)
+                   .Split(new [] { "|", }, StringSplitOptions.None)
                    .Select(s => new Repository() { Name = s, })
                    .ToArray();
         }

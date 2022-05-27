@@ -30,7 +30,7 @@ public class ActionBrowserV1Mapper : IActionToRepositoryActionMapper
         return action is RepositoryActionBrowserV1;
     }
 
-    bool IActionToRepositoryActionMapper.CanHandleMultipeRepositories()
+    bool IActionToRepositoryActionMapper.CanHandleMultipleRepositories()
     {
         return false;
     }
@@ -40,8 +40,13 @@ public class ActionBrowserV1Mapper : IActionToRepositoryActionMapper
         return Map(action as RepositoryActionBrowserV1, repository.First());
     }
 
-    public IEnumerable<Api.Git.RepositoryAction> Map(RepositoryActionBrowserV1 action, Repository repository)
+    public IEnumerable<Api.Git.RepositoryAction> Map(RepositoryActionBrowserV1? action, Repository repository)
     {
+        if (action == null)
+        {
+            yield break;
+        }
+
         if (!_expressionEvaluator.EvaluateBooleanExpression(action.Active, repository))
         {
             yield break;

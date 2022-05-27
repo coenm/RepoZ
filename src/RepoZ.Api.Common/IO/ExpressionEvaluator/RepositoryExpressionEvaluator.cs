@@ -1,19 +1,11 @@
 namespace RepoZ.Api.Common.IO.ExpressionEvaluator;
 
-using ExpressionStringEvaluator.Methods.BooleanToBoolean;
-using ExpressionStringEvaluator.Methods.Flow;
-using ExpressionStringEvaluator.Methods.StringToBoolean;
-using ExpressionStringEvaluator.Methods.StringToInt;
-using ExpressionStringEvaluator.Methods.StringToString;
 using ExpressionStringEvaluator.Methods;
 using ExpressionStringEvaluator.Parser;
-using ExpressionStringEvaluator.VariableProviders.DateTime;
 using ExpressionStringEvaluator.VariableProviders;
 using System.Collections.Generic;
-using System.IO.Abstractions;
 using System;
 using System.Linq;
-using System.Threading;
 using RepoZ.Api.Git;
 
 public class RepositoryContext
@@ -53,16 +45,18 @@ public class RepositoryExpressionEvaluator
         return EvaluateStringExpression(value, repository.AsEnumerable());
     }
 
-    public string EvaluateStringExpression(string value, IEnumerable<Repository> repository)
+    private string EvaluateStringExpression(string value, IEnumerable<Repository> repository)
     {
-        if (value == null)
-        {
-            return string.Empty;
-        }
-
         try
         {
             CombinedTypeContainer result = _expressionExecutor.Execute<RepositoryContext>(new RepositoryContext(repository), value);
+
+            // seems to be possible
+            if (result == null)
+            {
+                return string.Empty;
+            }
+
             if (result.IsString(out var s))
             {
                 return s;
@@ -76,7 +70,7 @@ public class RepositoryExpressionEvaluator
         }
     }
 
-    public bool EvaluateBooleanExpression(string value, Repository repository)
+    public bool EvaluateBooleanExpression(string value, Repository? repository)
     {
         if (string.IsNullOrWhiteSpace(value))
         {
@@ -85,7 +79,9 @@ public class RepositoryExpressionEvaluator
 
         try
         {
-            CombinedTypeContainer result = _expressionExecutor.Execute<RepositoryContext>(new RepositoryContext(repository), value);
+            Repository[] repositories = (repository == null) ? Array.Empty<Repository>() : new Repository[1] { repository };
+
+            CombinedTypeContainer result = _expressionExecutor.Execute<RepositoryContext>(new RepositoryContext(repositories), value);
             if (result.IsBool(out var b))
             {
                 return b.Value;
