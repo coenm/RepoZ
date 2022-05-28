@@ -123,7 +123,10 @@ namespace Tests.Helper
         }
 
 
-        public Repository Build() => _repository;
+        public Repository Build()
+        {
+            return _repository;
+        }
 
         public Repository BuildFullFeatured()
         {
