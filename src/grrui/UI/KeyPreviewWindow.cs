@@ -20,7 +20,7 @@ namespace grrui.UI
 
         public override bool ProcessKey(KeyEvent keyEvent)
         {
-            if (_keyActions.TryGetValue(keyEvent.Key, out Action action))
+            if (_keyActions.TryGetValue(keyEvent.Key, out Action? action))
             {
                 action.Invoke();
             }
