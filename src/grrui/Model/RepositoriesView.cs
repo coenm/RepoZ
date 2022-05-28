@@ -52,6 +52,6 @@ namespace grrui.Model
                                                 .Where(r => r.MatchesFilter(Filter ?? string.Empty))
                                                 .ToArray();
 
-        public string Filter { get; set; }
+        public string Filter { get; set; } = string.Empty;
     }
 }

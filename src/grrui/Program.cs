@@ -23,7 +23,7 @@ static class Program
         _client = new IpcClient(new DefaultIpcEndpoint());
         IpcClient.Result answer = _client.GetRepositories();
 
-        var repositoryCount = answer.Repositories?.Length ?? 0;
+        var repositoryCount = answer.Repositories.Length;
         if (repositoryCount == 0)
         {
             if (!string.IsNullOrEmpty(answer?.Answer))
