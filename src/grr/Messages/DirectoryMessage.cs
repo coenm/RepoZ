@@ -10,7 +10,7 @@ namespace grr.Messages
         private readonly bool _argumentIsExistingDirectory;
         private protected readonly IFileSystem FileSystem;
 
-        public DirectoryMessage(RepositoryFilterOptions filter, IFileSystem fileSystem)
+        protected DirectoryMessage(RepositoryFilterOptions filter, IFileSystem fileSystem)
         {
             Filter = filter ?? throw new ArgumentNullException(nameof(filter));
             FileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
@@ -40,7 +40,7 @@ namespace grr.Messages
 
         protected virtual void ExecuteRepositoryQuery(Repository[] repositories)
         {
-            if (repositories == null || repositories.Length <= 0)
+            if (repositories.Length == 0)
             {
                 return;
             }

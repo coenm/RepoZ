@@ -9,14 +9,14 @@ namespace grr.Messages
     [System.Diagnostics.DebuggerDisplay("{GetRemoteCommand()}")]
     public abstract class FileMessage : DirectoryMessage
     {
-        public FileMessage(RepositoryFilterOptions filter, IFileSystem fileSystem)
+        protected FileMessage(RepositoryFilterOptions filter, IFileSystem fileSystem)
             : base(filter, fileSystem)
         {
         }
 
         protected override void ExecuteExistingDirectory(string directory)
         {
-            string[] items = null;
+            string[] items;
 
             try
             {

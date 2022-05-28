@@ -60,7 +60,7 @@ namespace grr.Messages
             // command is:   cmd.exe /C "C:\Path\Solution.sln"
             var executable = isExecutable ? file : "cmd.exe";
             var arguments = isExecutable ? "" : $"/C \"{file}\"";
-            var windowStyle = isExecutable ? ProcessWindowStyle.Normal : ProcessWindowStyle.Hidden;
+            ProcessWindowStyle windowStyle = isExecutable ? ProcessWindowStyle.Normal : ProcessWindowStyle.Hidden;
 
             return new ProcessStartInfo
                 {
@@ -73,7 +73,7 @@ namespace grr.Messages
                 };
         }
 
-        private bool IsExecutable(string file)
+        private static bool IsExecutable(string file)
         {
             var executables = new string[]
                 {

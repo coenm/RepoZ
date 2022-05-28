@@ -46,12 +46,10 @@ namespace RepoZ.Ipc
 
             watch.Stop();
 
-            return new Result()
-                {
-                    Answer = _answer ?? GetErrorMessage(),
-                    DurationMilliseconds = watch.ElapsedMilliseconds,
-                    Repositories = _repositories ?? Array.Empty<Repository>(),
-                };
+            return new Result(
+                _answer ?? GetErrorMessage(),
+                watch.ElapsedMilliseconds,
+                _repositories);
         }
 
         private string GetErrorMessage()
@@ -77,9 +75,18 @@ namespace RepoZ.Ipc
 
         public class Result
         {
-            public string Answer { get; set; }
-            public long DurationMilliseconds { get; set; }
-            public Repository[] Repositories { get; set; } = Array.Empty<Repository>();
+            public Result(string answer, long durationMilliseconds, Repository[]? repositories)
+            {
+                Answer = answer;
+                DurationMilliseconds = durationMilliseconds;
+                Repositories = repositories ?? Array.Empty<Repository>();
+            }
+
+            public string Answer { get; }
+
+            public long DurationMilliseconds { get; }
+
+            public Repository[] Repositories { get; }
         }
     }
 }

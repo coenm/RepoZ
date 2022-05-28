@@ -10,7 +10,9 @@ namespace grr.Messages
     public class ListRepositoryFilesMessage : FileMessage
     {
         public ListRepositoryFilesMessage(RepositoryFilterOptions filter, IFileSystem fileSystem)
-            : base(filter, fileSystem) { }
+            : base(filter, fileSystem)
+        {
+        }
 
         protected override void ExecuteFound(string[] files)
         {
