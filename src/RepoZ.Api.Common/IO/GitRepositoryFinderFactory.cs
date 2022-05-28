@@ -19,7 +19,7 @@ namespace RepoZ.Api.Common.IO
 
         public IGitRepositoryFinder Create()
         {
-            ISingleGitRepositoryFinderFactory factory = null;
+            ISingleGitRepositoryFinderFactory? factory = null;
 
             foreach (var enabledSearchProviderName in _appSettingsService.EnabledSearchProviders)
             {

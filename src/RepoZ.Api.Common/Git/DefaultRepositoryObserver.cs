@@ -6,13 +6,15 @@ namespace RepoZ.Api.Common.Git
     using System.Threading;
     using System.Threading.Tasks;
 
-    public class DefaultRepositoryObserver : IRepositoryObserver
+    public sealed class DefaultRepositoryObserver : IRepositoryObserver
     {
-        private Repository _repository;
-        private FileSystemWatcher _watcher;
+        private Repository? _repository;
+        private FileSystemWatcher? _watcher;
         private bool _ioDetected;
 
-        public Action<Repository> OnChange { get; set; }
+        public Action<Repository> OnChange { get; set; } = delegate { };
+
+        public int DetectionToAlertDelayMilliseconds { get; private set; }
 
         public void Setup(Repository repository, int detectionToAlertDelayMilliseconds)
         {
@@ -30,12 +32,18 @@ namespace RepoZ.Api.Common.Git
 
         public void Start()
         {
-            _watcher.EnableRaisingEvents = true;
+            if (_watcher != null)
+            {
+                _watcher.EnableRaisingEvents = true;
+            }
         }
 
         public void Stop()
         {
-            _watcher.EnableRaisingEvents = false;
+            if (_watcher != null)
+            {
+                _watcher.EnableRaisingEvents = false;
+            }
         }
 
         private void WatcherDeleted(object sender, FileSystemEventArgs e)
@@ -60,19 +68,20 @@ namespace RepoZ.Api.Common.Git
 
         private void PauseWatcherAndScheduleCallback()
         {
-            if (!_ioDetected)
+            if (_ioDetected)
             {
-                _ioDetected = true;
-
-                // stop the watcher once we found IO ...
-                Stop();
-
-                // ... and schedule a method to reactivate the watchers again
-                // if nothing happened in between (regarding IO) it should also fire the OnChange-event
-                Task.Run(() =>
-                        Thread.Sleep(DetectionToAlertDelayMilliseconds))
-                    .ContinueWith(AwakeWatcherAndScheduleEventInvocationIfNoFurtherIOGetsDetected);
+                return;
             }
+
+            _ioDetected = true;
+
+            // stop the watcher once we found IO ...
+            Stop();
+
+            // ... and schedule a method to reactivate the watchers again
+            // if nothing happened in between (regarding IO) it should also fire the OnChange-event
+            Task.Run(() => Thread.Sleep(DetectionToAlertDelayMilliseconds))
+                .ContinueWith(AwakeWatcherAndScheduleEventInvocationIfNoFurtherIOGetsDetected);
         }
 
         private void AwakeWatcherAndScheduleEventInvocationIfNoFurtherIOGetsDetected(object state)
@@ -95,18 +104,18 @@ namespace RepoZ.Api.Common.Git
                             return;
                         }
 
-                        Console.WriteLine($"ONCHANGE on {_repository.Name}");
-                        OnChange?.Invoke(_repository);
+                        Repository? repo = _repository;
+                        if (repo == null)
+                        {
+                            return;
+                        }
+                            
+                        Console.WriteLine($"ONCHANGE on {repo.Name}");
+                        OnChange?.Invoke(repo);
                     });
         }
 
         public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        public virtual void Dispose(bool disposing)
         {
             if (_watcher != null)
             {
@@ -115,9 +124,8 @@ namespace RepoZ.Api.Common.Git
                 _watcher.Deleted -= WatcherDeleted;
                 _watcher.Renamed -= WatcherRenamed;
                 _watcher.Dispose();
+                _watcher = null;
             }
         }
-
-        public int DetectionToAlertDelayMilliseconds { get; private set; }
     }
 }

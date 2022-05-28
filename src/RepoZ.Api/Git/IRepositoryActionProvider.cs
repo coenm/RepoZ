@@ -4,9 +4,9 @@ namespace RepoZ.Api.Git
 
     public interface IRepositoryActionProvider
     {
-        RepositoryAction GetPrimaryAction(Repository repository);
+        RepositoryAction? GetPrimaryAction(Repository repository);
 
-        RepositoryAction GetSecondaryAction(Repository repository);
+        RepositoryAction? GetSecondaryAction(Repository repository);
 
         IEnumerable<RepositoryAction> GetContextMenuActions(IEnumerable<Repository> repositories);
     }

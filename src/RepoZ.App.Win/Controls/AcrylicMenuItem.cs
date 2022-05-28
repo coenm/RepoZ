@@ -23,9 +23,7 @@ namespace RepoZ.App.Win.Controls
                 return;
             }
 
-            var container = VisualTreeHelper.GetParent(firstSubItem) as Visual;
-
-            if (container == null)
+            if (VisualTreeHelper.GetParent(firstSubItem) is not Visual container)
             {
                 return;
             }

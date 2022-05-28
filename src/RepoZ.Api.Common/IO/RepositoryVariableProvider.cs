@@ -1,7 +1,6 @@
 namespace RepoZ.Api.Common.IO;
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using ExpressionStringEvaluator.VariableProviders;
 using RepoZ.Api.Common.IO.ExpressionEvaluator;
@@ -16,7 +15,7 @@ public class RepositoryVariableProvider : IVariableProvider<RepositoryContext>
 
     public string Provide(RepositoryContext context, string key, string arg)
     {
-        Repository repository = context?.Repositories.SingleOrDefault();
+        Repository? repository = context.Repositories.SingleOrDefault();
         if (repository == null)
         {
             return string.Empty;

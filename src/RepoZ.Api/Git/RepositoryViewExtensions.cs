@@ -27,7 +27,7 @@ namespace RepoZ.Api.Git
                 return repositoryView.HasUnpushedChanges;
             }
 
-            string filterProperty = null;
+            string? filterProperty = null;
 
             // note, these are used in grr.RegexFilter as well
             if (filter.StartsWith("n ", StringComparison.OrdinalIgnoreCase))
@@ -62,7 +62,7 @@ namespace RepoZ.Api.Git
                 return Regex.IsMatch(filterProperty, filter, RegexOptions.IgnoreCase);
             }
 
-            return filterProperty?.IndexOf(filter, StringComparison.OrdinalIgnoreCase) > -1;
+            return filterProperty.IndexOf(filter, StringComparison.OrdinalIgnoreCase) > -1;
         }
     }
 }

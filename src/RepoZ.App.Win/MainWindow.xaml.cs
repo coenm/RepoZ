@@ -245,7 +245,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        RepositoryAction action;
+        RepositoryAction? action;
 
         if (Keyboard.IsKeyDown(Key.LeftAlt) || Keyboard.IsKeyDown(Key.LeftCtrl))
         {

@@ -132,13 +132,13 @@ public class DefaultRepositoryActionProviderTest
             };
     
         // act
-        RepositoryAction result = sut.GetPrimaryAction(repository);
+        RepositoryAction? result = sut.GetPrimaryAction(repository);
         
         // assert
         A.CallTo(_errorHandler).MustNotHaveHappened();
         await Verifier.Verify(new
             {
-                result.Name,
+                result!.Name,
                 result.CanExecute,
                 result.ExecutionCausesSynchronizing,
             }).ModifySerialization(s => s.DontIgnoreFalse());

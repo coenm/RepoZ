@@ -30,7 +30,7 @@ namespace RepoZ.Plugin.WindowsExplorerGitInfo.PInvoke
         static extern IntPtr SendMessage(IntPtr hWnd, uint Msg, IntPtr wParam, [Out] StringBuilder lParam);
 
 
-        private IntPtr FindActiveWindow()
+        private static IntPtr FindActiveWindow()
         {
             return GetForegroundWindow();
         }
@@ -65,7 +65,7 @@ namespace RepoZ.Plugin.WindowsExplorerGitInfo.PInvoke
             SetWindowText(handle, current + "@" + text);
         }
 
-        public WindowPath GetPathOfCurrentWindow()
+        public WindowPath? GetPathOfCurrentWindow()
         {
             IntPtr handle = FindActiveWindow();
 
@@ -79,7 +79,7 @@ namespace RepoZ.Plugin.WindowsExplorerGitInfo.PInvoke
                 return null;
             }
 
-            IPathFinder finder = _pathFinders.FirstOrDefault(f => f.CanHandle(processName));
+            IPathFinder? finder = _pathFinders.FirstOrDefault(f => f.CanHandle(processName));
 
             var path = finder?.FindPath(handle) ?? string.Empty;
 

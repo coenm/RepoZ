@@ -74,7 +74,7 @@ namespace RepoZ.Plugin.WindowsExplorerGitInfo.PInvoke
         /// <param name="memberName">The name of the member (method or property) to call or to get the value from.</param>
         /// <param name="flags">The binding flags to decide whether to invoke methods or to retrieve property values.</param>
         /// <returns></returns>
-        protected T GetValueViaReflection<T>(string memberName, BindingFlags flags)
+        private T GetValueViaReflection<T>(string memberName, BindingFlags flags)
         {
             return (T)_comType.Value.InvokeMember(memberName, flags, null, ComObject, null);
         }

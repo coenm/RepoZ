@@ -104,7 +104,7 @@ public class RepositoryConfigurationReader
         var multipleRepositoriesSelected = repositories.Length > 1;
 
         var variables = new List<Variable>();
-        Dictionary<string, string> envVars = null;
+        Dictionary<string, string>? envVars = null;
         var actions = new List<ActionsCollection>();
         var tags = new List<TagsCollection>();
 
@@ -304,11 +304,6 @@ public class RepositoryTagsConfigurationFactory : IRepositoryTagsFactory
 
     private IEnumerable<string> GetTagsInner(RepoZ.Api.Git.Repository repository)
     {
-        if (repository == null)
-        {
-            yield break;
-        }
-
         List<Variable> EvaluateVariables(IEnumerable<Variable> vars)
         {
             if (vars == null)
@@ -328,7 +323,7 @@ public class RepositoryTagsConfigurationFactory : IRepositoryTagsFactory
         }
 
         Dictionary<string, string> repositoryEnvVars;
-        List< Variable > variables;
+        List<Variable> variables;
         List<TagsCollection> tags;
 
         try
