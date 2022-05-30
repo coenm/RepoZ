@@ -38,14 +38,16 @@ public class RepositoryView : IRepositoryView, INotifyPropertyChanged
         // compare the status code and not the full status string because the latter one is heavier to calculate
         var canTakeFromCache = string.Equals(_cachedRepositoryStatusCode, repositoryStatusCode, StringComparison.CurrentCulture);
 
-        if (!canTakeFromCache)
+        if (canTakeFromCache)
         {
-            var compressor = new StatusCompressor(new StatusCharacterMap());
-            _cachedRepositoryStatus = compressor.Compress(Repository);
-            _cachedRepositoryStatusWithBranch = compressor.CompressWithBranch(Repository);
-
-            _cachedRepositoryStatusCode = repositoryStatusCode;
+            return;
         }
+
+        var compressor = new StatusCompressor(new StatusCharacterMap());
+        _cachedRepositoryStatus = compressor.Compress(Repository);
+        _cachedRepositoryStatusWithBranch = compressor.CompressWithBranch(Repository);
+
+        _cachedRepositoryStatusCode = repositoryStatusCode;
     }
 
     public string Name => (Repository.Name ?? string.Empty) + (IsSynchronizing ? SyncAppendix : string.Empty);
