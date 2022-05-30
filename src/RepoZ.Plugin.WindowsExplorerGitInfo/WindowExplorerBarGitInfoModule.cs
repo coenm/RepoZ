@@ -7,7 +7,7 @@ using JetBrains.Annotations;
 using RepoZ.Api;
 using RepoZ.Plugin.WindowsExplorerGitInfo.PInvoke.Explorer;
 
-[UsedImplicitly]
+[UsedImplicitly] 
 internal class WindowExplorerBarGitInfoModule : IModule
 {
     private readonly Timer _explorerUpdateTimer;
