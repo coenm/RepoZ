@@ -12,7 +12,7 @@ using System.Linq;
 public class FileAppSettingsService : IAppSettingsService
 {
     private readonly IFileSystem _fileSystem;
-    private AppSettings _settings;
+    private AppSettings? _settings;
     private readonly List<Action> _invalidationHandlers = new List<Action>();
     private readonly IAppDataPathProvider _appDataPathProvider;
 
@@ -34,7 +34,8 @@ public class FileAppSettingsService : IAppSettingsService
         try
         {
             var json = _fileSystem.File.ReadAllText(file);
-            return JsonConvert.DeserializeObject<AppSettings>(json);
+            AppSettings? result = JsonConvert.DeserializeObject<AppSettings>(json);
+            return result ?? AppSettings.Default;
         }
         catch
         {
@@ -69,7 +70,7 @@ public class FileAppSettingsService : IAppSettingsService
         return Path.Combine(_appDataPathProvider.GetAppDataPath(), "appsettings.json");
     }
 
-    public AppSettings Settings => _settings ??= Load();
+    private AppSettings Settings => _settings ??= Load();
 
     public AutoFetchMode AutoFetchMode
     {
@@ -110,7 +111,7 @@ public class FileAppSettingsService : IAppSettingsService
         get => Settings.MenuSize.Width;
         set
         {
-            if (value == Settings.MenuSize.Width)
+            if (Math.Abs(value - Settings.MenuSize.Width) < 0.001)
             {
                 return;
             }
@@ -127,7 +128,7 @@ public class FileAppSettingsService : IAppSettingsService
         get => Settings.MenuSize.Height;
         set
         {
-            if (value == Settings.MenuSize.Height)
+            if (Math.Abs(value - Settings.MenuSize.Height) < 0.001)
             {
                 return;
             }
