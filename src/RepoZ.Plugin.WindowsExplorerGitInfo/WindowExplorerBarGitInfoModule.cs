@@ -3,9 +3,11 @@ namespace RepoZ.Plugin.WindowsExplorerGitInfo;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 using RepoZ.Api;
 using RepoZ.Plugin.WindowsExplorerGitInfo.PInvoke.Explorer;
 
+[UsedImplicitly]
 internal class WindowExplorerBarGitInfoModule : IModule
 {
     private readonly Timer _explorerUpdateTimer;
@@ -31,7 +33,7 @@ internal class WindowExplorerBarGitInfoModule : IModule
         return Task.CompletedTask;
     }
 
-    protected void RefreshTimerCallback(object state)
+    private void RefreshTimerCallback(object? state)
     {
         _explorerHandler.UpdateTitles();
         _explorerUpdateTimer.Change(500, Timeout.Infinite);
