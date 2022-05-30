@@ -1,7 +1,6 @@
-namespace RepoZ.Api.Git
+namespace RepoZ.Api.Git;
+
+public interface IRepositoryDetectorFactory
 {
-    public interface IRepositoryDetectorFactory
-    {
-        IRepositoryDetector Create();
-    }
+    IRepositoryDetector Create();
 }

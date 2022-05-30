@@ -41,7 +41,7 @@ public partial class App : Application, IRepositorySource
 {
     private static Timer? _updateTimer;
     private HotKey? _hotkey;
-    private static IRepositoryMonitor _repositoryMonitor;
+    private static IRepositoryMonitor? _repositoryMonitor;
     private TaskbarIcon? _notifyIcon;
     private List<IModule>? _modules;
     private IAppSettingsService? _settings;
@@ -68,7 +68,7 @@ public partial class App : Application, IRepositorySource
 
         Application.Current.Resources.MergedDictionaries[0] = ResourceDictionaryTranslationService.ResourceDictionary;
 
-        _notifyIcon = (TaskbarIcon)FindResource("NotifyIcon");
+        _notifyIcon = FindResource("NotifyIcon") as TaskbarIcon;
 
         
         RegisterServices(_container);
@@ -242,7 +242,7 @@ public partial class App : Application, IRepositorySource
         allTasks.GetAwaiter().GetResult();
     }
 
-    protected static void UseRepositoryMonitor(Container container)
+    private static void UseRepositoryMonitor(Container container)
     {
         // var repositoryInformationAggregator = container.GetInstance<IRepositoryInformationAggregator>();
         _repositoryMonitor = container.GetInstance<IRepositoryMonitor>();

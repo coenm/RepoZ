@@ -1,45 +1,45 @@
-namespace LuceneSearch.Tests
+namespace RepoZ.Plugin.LuceneSearch.Tests;
+
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using FluentAssertions;
+using RepoZ.Plugin.LuceneSearch;
+using Xunit;
+
+public class UnitTest1
 {
-    using System.Collections.Generic;
-    using System.Threading.Tasks;
-    using FluentAssertions;
-    using RepoZ.Plugin.LuceneSearch;
-    using Xunit;
-
-    public class UnitTest1
+    [Fact]
+    public void Test1()
     {
-        [Fact]
-        public void Test1()
-        {
-            var sut = new RepositoryIndex(new LuceneDirectoryInstance(new RamLuceneDirectoryFactory()));
+        // arrange
+        var sut = new RepositoryIndex(new LuceneDirectoryInstance(new RamLuceneDirectoryFactory()));
 
-            var results = sut.Search("tag:work project x", SearchOperator.Or, out var hits);
+        // act
+        List<RepositorySearchResult> results = sut.Search("tag:work project x", SearchOperator.Or, out var hits);
 
-            hits.Should().Be(0);
-        }
+        // assert
+        hits.Should().Be(0);
+    }
 
-        [Fact]
-        public async Task Tesdt1()
-        {
-            // arrange
-            var sut = new RepositoryIndex(new LuceneDirectoryInstance(new RamLuceneDirectoryFactory()));
-            var item = new RepositorySearchModel()
+    [Fact]
+    public async Task Tesdt1()
+    {
+        // arrange
+        var sut = new RepositoryIndex(new LuceneDirectoryInstance(new RamLuceneDirectoryFactory()));
+        var item = new RepositorySearchModel(
+            "c:/a/b/c",
+            "RepoZ",
+            new List<string>()
                 {
-                    Path = "c:/a/b/c",
-                    RepositoryName = "RepoZ",
-                    Tags = new List<string>()
-                        {
-                            "repositories",
-                            "work",
-                        },
-                };
-            await sut.ReIndexMediaFileAsync(item).ConfigureAwait(false);
+                    "repositories",
+                    "work",
+                });
+        await sut.ReIndexMediaFileAsync(item).ConfigureAwait(false);
 
-            // act
-            var result = sut.Search("tag:work project x", SearchOperator.Or, out var hits);
+        // act
+        List<RepositorySearchResult> result = sut.Search("tag:work project x", SearchOperator.Or, out var hits);
 
-            // assert
-            hits.Should().Be(1);
-        }
+        // assert
+        hits.Should().Be(1);
     }
 }

@@ -1,9 +1,8 @@
-namespace RepoZ.Api.Common
-{
-    using System;
+namespace RepoZ.Api.Common;
 
-    public interface IThreadDispatcher
-    {
-        void Invoke(Action act);
-    }
+using System;
+
+public interface IThreadDispatcher
+{
+    void Invoke(Action act);
 }

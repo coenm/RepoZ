@@ -1,9 +1,8 @@
-namespace RepoZ.Api.IO
-{
-    public interface IAppDataPathProvider
-    {
-        string GetAppDataPath();
+namespace RepoZ.Api.IO;
 
-        string GetAppResourcesPath();
-    }
+public interface IAppDataPathProvider
+{
+    string GetAppDataPath();
+
+    string GetAppResourcesPath();
 }

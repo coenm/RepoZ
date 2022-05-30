@@ -1,15 +1,14 @@
-namespace grr.Messages
+namespace grr.Messages;
+
+using RepoZ.Ipc;
+
+public interface IMessage
 {
-    using RepoZ.Ipc;
+    string? GetRemoteCommand();
 
-    public interface IMessage
-    {
-        string? GetRemoteCommand();
+    void Execute(Repository[] repositories);
 
-        void Execute(Repository[] repositories);
+    bool HasRemoteCommand { get; }
 
-        bool HasRemoteCommand { get; }
-
-        bool ShouldWriteRepositories(Repository[] repositories);
-    }
+    bool ShouldWriteRepositories(Repository[] repositories);
 }

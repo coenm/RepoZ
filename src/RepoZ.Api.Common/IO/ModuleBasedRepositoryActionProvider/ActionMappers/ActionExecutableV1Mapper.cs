@@ -72,7 +72,13 @@ public class ActionExecutableV1Mapper : IActionToRepositoryActionMapper
                 continue;
             }
 
-            var arguments = _expressionEvaluator.EvaluateStringExpression(action.Arguments, repository);
+            var arguments = string.Empty;
+
+            if (action.Arguments is not null)
+            {
+                arguments = _expressionEvaluator.EvaluateStringExpression(action.Arguments, repository);
+            }
+
             yield return new Api.Git.RepositoryAction
                 {
                     Name = name,

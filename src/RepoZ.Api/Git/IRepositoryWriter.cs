@@ -1,13 +1,12 @@
-namespace RepoZ.Api.Git
+namespace RepoZ.Api.Git;
+
+public interface IRepositoryWriter
 {
-    public interface IRepositoryWriter
-    {
-        bool Checkout(Repository repository, string branchName);
+    bool Checkout(Repository repository, string branchName);
 
-        void Fetch(Repository repository);
+    void Fetch(Repository repository);
 
-        void Pull(Repository repository);
+    void Pull(Repository repository);
 
-        void Push(Repository repository);
-    }
+    void Push(Repository repository);
 }

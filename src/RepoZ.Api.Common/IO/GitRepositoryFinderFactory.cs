@@ -1,49 +1,48 @@
-namespace RepoZ.Api.Common.IO
+namespace RepoZ.Api.Common.IO;
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using RepoZ.Api.Common.Common;
+using RepoZ.Api.IO;
+
+public class GitRepositoryFinderFactory : IGitRepositoryFinderFactory
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using RepoZ.Api.Common.Common;
-    using RepoZ.Api.IO;
+    private readonly IAppSettingsService _appSettingsService;
+    private readonly List<ISingleGitRepositoryFinderFactory> _factories;
 
-    public class GitRepositoryFinderFactory : IGitRepositoryFinderFactory
+    public GitRepositoryFinderFactory(IAppSettingsService appSettingsService, IEnumerable<ISingleGitRepositoryFinderFactory> factories)
     {
-        private readonly IAppSettingsService _appSettingsService;
-        private readonly List<ISingleGitRepositoryFinderFactory> _factories;
+        _appSettingsService = appSettingsService ?? throw new ArgumentNullException(nameof(appSettingsService));
+        _factories = factories?.ToList() ?? throw new ArgumentNullException(nameof(factories));
+    }
 
-        public GitRepositoryFinderFactory(IAppSettingsService appSettingsService, IEnumerable<ISingleGitRepositoryFinderFactory> factories)
+    public IGitRepositoryFinder Create()
+    {
+        ISingleGitRepositoryFinderFactory? factory = null;
+
+        foreach (var enabledSearchProviderName in _appSettingsService.EnabledSearchProviders)
         {
-            _appSettingsService = appSettingsService ?? throw new ArgumentNullException(nameof(appSettingsService));
-            _factories = factories?.ToList() ?? throw new ArgumentNullException(nameof(factories));
-        }
-
-        public IGitRepositoryFinder Create()
-        {
-            ISingleGitRepositoryFinderFactory? factory = null;
-
-            foreach (var enabledSearchProviderName in _appSettingsService.EnabledSearchProviders)
+            if (!string.IsNullOrWhiteSpace(enabledSearchProviderName))
             {
-                if (!string.IsNullOrWhiteSpace(enabledSearchProviderName))
-                {
-                    factory = _factories.FirstOrDefault(searchProviderFactory => searchProviderFactory.IsActive
-                                                                                 &&
-                                                                                 searchProviderFactory.Name.Equals(enabledSearchProviderName, StringComparison.CurrentCultureIgnoreCase));
-                }
-
-                if (factory != null)
-                {
-                    return factory.Create();
-                }
+                factory = _factories.FirstOrDefault(searchProviderFactory => searchProviderFactory.IsActive
+                                                                             &&
+                                                                             searchProviderFactory.Name.Equals(enabledSearchProviderName, StringComparison.CurrentCultureIgnoreCase));
             }
 
-            // Default, fallback
-            factory = _factories.FirstOrDefault(searchProviderFactory => searchProviderFactory is GravellGitRepositoryFinderFactory);
             if (factory != null)
             {
                 return factory.Create();
             }
-
-            throw new Exception("Could not create IGitRepositoryFinder");
         }
+
+        // Default, fallback
+        factory = _factories.FirstOrDefault(searchProviderFactory => searchProviderFactory is GravellGitRepositoryFinderFactory);
+        if (factory != null)
+        {
+            return factory.Create();
+        }
+
+        throw new Exception("Could not create IGitRepositoryFinder");
     }
 }

@@ -179,10 +179,7 @@ static class Program
 
     private static void Browse()
     {
-        ExecuteOnSelectedRepository(r =>
-            {
-                Process.Start(new ProcessStartInfo(r.SafePath) { UseShellExecute = true, });
-            });
+        ExecuteOnSelectedRepository(r => Process.Start(new ProcessStartInfo(r.SafePath) { UseShellExecute = true, }));
     }
 
     private static void ExecuteOnSelectedRepository(Action<Repository> action)

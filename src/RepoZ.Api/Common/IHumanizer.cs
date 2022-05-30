@@ -1,9 +1,8 @@
-namespace RepoZ.Api.Common
-{
-    using System;
+namespace RepoZ.Api.Common;
 
-    public interface IHumanizer
-    {
-        string HumanizeTimestamp(DateTime value);
-    }
+using System;
+
+public interface IHumanizer
+{
+    string HumanizeTimestamp(DateTime value);
 }

@@ -56,6 +56,11 @@ public class ActionAssociateFileV1Mapper : IActionToRepositoryActionMapper
         //todo no arguments needed.
         // var arguments = _expressionEvaluator.EvaluateStringExpression(action.Arguments, repository);
 
+        if (action.Extension is null)
+        {
+            yield break;
+        }
+
         Api.Git.RepositoryAction? menuItem = CreateFileAssociationSubMenu(
             repository,
             name,

@@ -1,11 +1,11 @@
-namespace RepoZ.Api
+namespace RepoZ.Api;
+
+using System.Threading.Tasks;
+using JetBrains.Annotations;
+
+public interface IModule
 {
-    using System.Threading.Tasks;
+    Task StartAsync();
 
-    public interface IModule
-    {
-        Task StartAsync();
-
-        Task StopAsync();
-    }
+    Task StopAsync();
 }

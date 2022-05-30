@@ -1,27 +1,28 @@
-namespace RepoZ.Plugin.EverythingFileSearch
+namespace RepoZ.Plugin.EverythingFileSearch;
+
+using System;
+using JetBrains.Annotations;
+using RepoZ.Api.IO;
+using RepoZ.Plugin.EverythingFileSearch.Internal;
+
+[UsedImplicitly]
+public class EverythingGitRepositoryFinderFactory : ISingleGitRepositoryFinderFactory
 {
-    using System;
-    using RepoZ.Api.IO;
-    using RepoZ.Plugin.EverythingFileSearch.Internal;
+    private readonly IPathSkipper _pathSkipper;
 
-    public class EverythingGitRepositoryFinderFactory : ISingleGitRepositoryFinderFactory
+    private readonly Lazy<bool> _isInstalled = new Lazy<bool>(Everything64Api.IsInstalled);
+
+    public EverythingGitRepositoryFinderFactory(IPathSkipper pathSkipper)
     {
-        private readonly IPathSkipper _pathSkipper;
+        _pathSkipper = pathSkipper ?? throw new ArgumentNullException(nameof(pathSkipper));
+    }
 
-        private readonly Lazy<bool> _isInstalled = new Lazy<bool>(Everything64Api.IsInstalled);
+    public string Name { get; } = "Everything";
 
-        public EverythingGitRepositoryFinderFactory(IPathSkipper pathSkipper)
-        {
-            _pathSkipper = pathSkipper ?? throw new ArgumentNullException(nameof(pathSkipper));
-        }
+    public bool IsActive => _isInstalled.Value;
 
-        public string Name { get; } = "Everything";
-
-        public bool IsActive => _isInstalled.Value;
-
-        public IGitRepositoryFinder Create()
-        {
-            return new EverythingGitRepositoryFinder(_pathSkipper);
-        }
+    public IGitRepositoryFinder Create()
+    {
+        return new EverythingGitRepositoryFinder(_pathSkipper);
     }
 }

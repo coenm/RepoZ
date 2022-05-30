@@ -1,19 +1,18 @@
-namespace RepoZ.Api.Common.Git
+namespace RepoZ.Api.Common.Git;
+
+using RepoZ.Api.Git;
+
+public class DefaultRepositoryDetectorFactory : IRepositoryDetectorFactory
 {
-    using RepoZ.Api.Git;
+    private readonly IRepositoryReader _repositoryReader;
 
-    public class DefaultRepositoryDetectorFactory : IRepositoryDetectorFactory
+    public DefaultRepositoryDetectorFactory(IRepositoryReader repositoryReader)
     {
-        private readonly IRepositoryReader _repositoryReader;
+        _repositoryReader = repositoryReader;
+    }
 
-        public DefaultRepositoryDetectorFactory(IRepositoryReader repositoryReader)
-        {
-            _repositoryReader = repositoryReader;
-        }
-
-        public IRepositoryDetector Create()
-        {
-            return new DefaultRepositoryDetector(_repositoryReader);
-        }
+    public IRepositoryDetector Create()
+    {
+        return new DefaultRepositoryDetector(_repositoryReader);
     }
 }

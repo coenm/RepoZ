@@ -1,13 +1,12 @@
-namespace RepoZ.App.Win
-{
-    using System.Windows;
-    using RepoZ.Api.Common;
+namespace RepoZ.App.Win;
 
-    public class UIErrorHandler : IErrorHandler
+using System.Windows;
+using RepoZ.Api.Common;
+
+public class UIErrorHandler : IErrorHandler
+{
+    public void Handle(string error)
     {
-        public void Handle(string error)
-        {
-            MessageBox.Show(error, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-        }
+        MessageBox.Show(error, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
     }
 }

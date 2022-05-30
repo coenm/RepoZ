@@ -304,7 +304,7 @@ public class RepositoryTagsConfigurationFactory : IRepositoryTagsFactory
 
     private IEnumerable<string> GetTagsInner(RepoZ.Api.Git.Repository repository)
     {
-        List<Variable> EvaluateVariables(IEnumerable<Variable> vars)
+        List<Variable> EvaluateVariables(IEnumerable<Variable>? vars)
         {
             if (vars == null)
             {
@@ -352,18 +352,23 @@ public class RepositoryTagsConfigurationFactory : IRepositoryTagsFactory
 
                 if (!string.IsNullOrWhiteSpace(action.Tag))
                 {
-                    yield return action.Tag;
+                    yield return action.Tag!;
                 }
             }
         }
     }
 
-    private string Evaluate(string input, Repository repository)
+    private string? Evaluate(string? input, Repository repository)
     {
+        if (input == null)
+        {
+            return null;
+        }
+
         return _repoExpressionEvaluator.EvaluateStringExpression(input, repository);
     }
 
-    private bool IsEnabled(string booleanExpression, bool defaultWhenNullOrEmpty, Repository repository)
+    private bool IsEnabled(string? booleanExpression, bool defaultWhenNullOrEmpty, Repository repository)
     {
         return string.IsNullOrWhiteSpace(booleanExpression)
             ? defaultWhenNullOrEmpty
@@ -517,15 +522,20 @@ public class RepositorySpecificConfiguration
         }
     }
 
-    private string Evaluate(string input, Repository repository)
+    private string? Evaluate(string? input, Repository repository)
     {
+        if (input == null)
+        {
+            return null;
+        }
+
         return _repoExpressionEvaluator.EvaluateStringExpression(input, repository);
     }
 
-    private bool IsEnabled(string booleanExpression, bool defaultWhenNullOrEmpty, Repository repository)
+    private bool IsEnabled(string? booleanExpression, bool defaultWhenNullOrEmpty, Repository repository)
     {
         return string.IsNullOrWhiteSpace(booleanExpression)
             ? defaultWhenNullOrEmpty
-            : _repoExpressionEvaluator.EvaluateBooleanExpression(booleanExpression, repository);
+            : _repoExpressionEvaluator.EvaluateBooleanExpression(booleanExpression!, repository);
     }
 }

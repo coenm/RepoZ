@@ -3,7 +3,6 @@ namespace RepoZ.Api.Common.IO.ModuleBasedRepositoryActionProvider.ActionMappers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using JetBrains.Annotations;
 using RepoZ.Api.Common.Common;
 using RepoZ.Api.Common.IO.ExpressionEvaluator;
 using RepoZ.Api.Common.IO.ModuleBasedRepositoryActionProvider.Data.Actions;
@@ -14,13 +13,11 @@ public class ActionFolderV1Mapper : IActionToRepositoryActionMapper
 {
     private readonly RepositoryExpressionEvaluator _expressionEvaluator;
     private readonly ITranslationService _translationService;
-    private readonly IErrorHandler _errorHandler;
 
-    public ActionFolderV1Mapper(RepositoryExpressionEvaluator expressionEvaluator, ITranslationService translationService, IErrorHandler errorHandler)
+    public ActionFolderV1Mapper(RepositoryExpressionEvaluator expressionEvaluator, ITranslationService translationService)
     {
         _expressionEvaluator = expressionEvaluator ?? throw new ArgumentNullException(nameof(expressionEvaluator));
         _translationService = translationService ?? throw new ArgumentNullException(nameof(translationService));
-        _errorHandler = errorHandler ?? throw new ArgumentNullException(nameof(errorHandler));
     }
     
     bool IActionToRepositoryActionMapper.CanMap(RepositoryAction action)

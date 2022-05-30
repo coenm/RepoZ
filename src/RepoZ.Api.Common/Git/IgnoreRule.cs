@@ -1,53 +1,52 @@
-namespace RepoZ.Api.Common.Git
+namespace RepoZ.Api.Common.Git;
+
+using System;
+
+public class IgnoreRule
 {
-    using System;
+    private readonly Func<string, bool> _comparer;
 
-    public class IgnoreRule
+    public IgnoreRule(string pattern)
     {
-        private readonly Func<string, bool> _comparer;
+        var wildcardStart = pattern.StartsWith("*");
+        var wildcardEnd = pattern.EndsWith("*");
 
-        public IgnoreRule(string pattern)
+        if (wildcardStart || wildcardEnd)
         {
-            var wildcardStart = pattern.StartsWith("*");
-            var wildcardEnd = pattern.EndsWith("*");
-
-            if (wildcardStart || wildcardEnd)
+            if (wildcardStart)
             {
-                if (wildcardStart)
-                {
-                    pattern = pattern.Substring(1);
-                }
+                pattern = pattern.Substring(1);
+            }
 
-                if (wildcardEnd)
-                {
-                    pattern = pattern.Substring(0, pattern.Length - 1);
-                }
+            if (wildcardEnd)
+            {
+                pattern = pattern.Substring(0, pattern.Length - 1);
+            }
 
-                if (wildcardStart && wildcardEnd)
-                {
-                    _comparer = path => path.IndexOf(pattern, StringComparison.OrdinalIgnoreCase) >= 0;
-                }
-                else
-                {
-                    if (wildcardStart)
-                    {
-                        _comparer = path => path.EndsWith(pattern, StringComparison.OrdinalIgnoreCase);
-                    }
-                    else
-                    {
-                        _comparer = path => path.StartsWith(pattern, StringComparison.OrdinalIgnoreCase);
-                    }
-                }
+            if (wildcardStart && wildcardEnd)
+            {
+                _comparer = path => path.IndexOf(pattern, StringComparison.OrdinalIgnoreCase) >= 0;
             }
             else
             {
-                _comparer = path => string.Equals(path, pattern, StringComparison.OrdinalIgnoreCase);
+                if (wildcardStart)
+                {
+                    _comparer = path => path.EndsWith(pattern, StringComparison.OrdinalIgnoreCase);
+                }
+                else
+                {
+                    _comparer = path => path.StartsWith(pattern, StringComparison.OrdinalIgnoreCase);
+                }
             }
         }
-
-        public bool IsIgnored(string path)
+        else
         {
-            return _comparer(path);
+            _comparer = path => string.Equals(path, pattern, StringComparison.OrdinalIgnoreCase);
         }
+    }
+
+    public bool IsIgnored(string path)
+    {
+        return _comparer(path);
     }
 }

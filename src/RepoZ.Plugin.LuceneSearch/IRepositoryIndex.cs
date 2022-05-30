@@ -9,9 +9,9 @@ internal interface IRepositoryIndex
 {
     Task<bool> ReIndexMediaFileAsync(RepositorySearchModel data);
 
-    int Count(Query query = null, Filter filter = null);
+    int Count(Query? query = null, Filter? filter = null);
 
-    RepositorySearchResult Search(Guid guid);
+    RepositorySearchResult? Search(Guid guid);
 
     List<RepositorySearchResult> Search(string queryString, SearchOperator searchMode, out int totalHits);
 

@@ -51,12 +51,17 @@ public class ActionMapperComposition
 
     }
 
-    private string Evaluate(string input, Repository repository)
+    private string? Evaluate(string? input, Repository repository)
     {
+        if (input == null)
+        {
+            return null;
+        }
+
         return _repoExpressionEvaluator.EvaluateStringExpression(input, repository);
     }
 
-    private bool IsEnabled(string booleanExpression, bool defaultWhenNullOrEmpty, Repository repository)
+    private bool IsEnabled(string? booleanExpression, bool defaultWhenNullOrEmpty, Repository repository)
     {
         return string.IsNullOrWhiteSpace(booleanExpression)
             ? defaultWhenNullOrEmpty

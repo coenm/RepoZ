@@ -4,9 +4,16 @@ using System.Collections.Generic;
 
 internal class RepositorySearchModel
 {
-    public string RepositoryName { get; set; }
+    public RepositorySearchModel(string repositoryName, string path, List<string> tags)
+    {
+        RepositoryName = repositoryName;
+        Path = path;
+        Tags = tags;
+    }
 
-    public string Path { get; set; }
+    public string RepositoryName { get; }
 
-    public List<string> Tags { get; set; }
+    public string Path { get; }
+
+    public List<string> Tags { get; }
 }

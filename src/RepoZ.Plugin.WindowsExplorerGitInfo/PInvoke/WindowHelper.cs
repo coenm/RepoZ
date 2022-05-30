@@ -1,68 +1,67 @@
-namespace RepoZ.Plugin.WindowsExplorerGitInfo.PInvoke
+namespace RepoZ.Plugin.WindowsExplorerGitInfo.PInvoke;
+
+using System;
+using System.Runtime.InteropServices;
+using System.Text;
+
+internal class WindowHelper
 {
-    using System;
-    using System.Runtime.InteropServices;
-    using System.Text;
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint processId);
 
-    internal class WindowHelper
+    [DllImport("user32.dll")]
+    private static extern IntPtr GetForegroundWindow();
+
+    [DllImport("user32.dll", EntryPoint = "SetWindowText", CharSet = CharSet.Auto)]
+    private static extern bool SetWindowTextApi(IntPtr hWnd, string strNewWindowName);
+
+    [DllImport("user32.dll", CharSet = CharSet.Auto)]
+    private static extern IntPtr SendMessage(IntPtr hWnd, uint Msg, IntPtr wParam, [Out] StringBuilder lParam);
+
+    public static IntPtr FindActiveWindow()
     {
-        [DllImport("user32.dll", SetLastError = true)]
-        private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint processId);
+        return GetForegroundWindow();
+    }
 
-        [DllImport("user32.dll")]
-        private static extern IntPtr GetForegroundWindow();
+    private const uint WM_GETTEXT = 0x000D;
+    private const uint WM_GETTEXTLENGTH = 0x000E;
 
-        [DllImport("user32.dll", EntryPoint = "SetWindowText", CharSet = CharSet.Auto)]
-        private static extern bool SetWindowTextApi(IntPtr hWnd, string strNewWindowName);
+    public static string GetWindowText(IntPtr hwnd)
+    {
+        // Allocate correct string length first
+        var length = (int)SendMessage(hwnd, WM_GETTEXTLENGTH, IntPtr.Zero, null);
+        var sb = new StringBuilder(length + 1);
+        SendMessage(hwnd, WM_GETTEXT, (IntPtr)sb.Capacity, sb);
+        return sb.ToString();
+    }
 
-        [DllImport("user32.dll", CharSet = CharSet.Auto)]
-        private static extern IntPtr SendMessage(IntPtr hWnd, uint Msg, IntPtr wParam, [Out] StringBuilder lParam);
+    public static void SetWindowText(IntPtr handle, string text)
+    {
+        SetWindowTextApi(handle, text);
+    }
 
-        public static IntPtr FindActiveWindow()
+    public static void AppendWindowText(IntPtr handle, string uniqueSplitter, string text)
+    {
+        var current = GetWindowText(handle);
+
+        var at = current.IndexOf(uniqueSplitter, StringComparison.OrdinalIgnoreCase);
+        if (at > -1)
         {
-            return GetForegroundWindow();
+            current = current.Substring(0, at);
         }
 
-        private const uint WM_GETTEXT = 0x000D;
-        private const uint WM_GETTEXTLENGTH = 0x000E;
+        SetWindowTextApi(handle, current + uniqueSplitter + text);
+    }
 
-        public static string GetWindowText(IntPtr hwnd)
+    public static void RemoveAppendedWindowText(IntPtr handle, string uniqueSplitter)
+    {
+        var current = GetWindowText(handle);
+
+        var at = current.IndexOf(uniqueSplitter, StringComparison.OrdinalIgnoreCase);
+        if (at > -1)
         {
-            // Allocate correct string length first
-            var length = (int)SendMessage(hwnd, WM_GETTEXTLENGTH, IntPtr.Zero, null);
-            var sb = new StringBuilder(length + 1);
-            SendMessage(hwnd, WM_GETTEXT, (IntPtr)sb.Capacity, sb);
-            return sb.ToString();
-        }
-
-        public static void SetWindowText(IntPtr handle, string text)
-        {
-            SetWindowTextApi(handle, text);
-        }
-
-        public static void AppendWindowText(IntPtr handle, string uniqueSplitter, string text)
-        {
-            var current = GetWindowText(handle);
-
-            var at = current.IndexOf(uniqueSplitter, StringComparison.OrdinalIgnoreCase);
-            if (at > -1)
-            {
-                current = current.Substring(0, at);
-            }
-
-            SetWindowTextApi(handle, current + uniqueSplitter + text);
-        }
-
-        public static void RemoveAppendedWindowText(IntPtr handle, string uniqueSplitter)
-        {
-            var current = GetWindowText(handle);
-
-            var at = current.IndexOf(uniqueSplitter, StringComparison.OrdinalIgnoreCase);
-            if (at > -1)
-            {
-                current = current.Substring(0, at);
-                SetWindowTextApi(handle, current);
-            }
+            current = current.Substring(0, at);
+            SetWindowTextApi(handle, current);
         }
     }
 }

@@ -1,11 +1,10 @@
-namespace RepoZ.Api.IO
+namespace RepoZ.Api.IO;
+
+using System;
+
+public interface IPathFinder
 {
-    using System;
+    bool CanHandle(string processName);
 
-    public interface IPathFinder
-    {
-        bool CanHandle(string processName);
-
-        string FindPath(IntPtr windowHandle);
-    }
+    string FindPath(IntPtr windowHandle);
 }

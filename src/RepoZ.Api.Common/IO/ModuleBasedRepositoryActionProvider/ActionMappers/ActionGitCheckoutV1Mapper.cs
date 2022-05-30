@@ -14,14 +14,12 @@ public class ActionGitCheckoutV1Mapper : IActionToRepositoryActionMapper
     private readonly RepositoryExpressionEvaluator _expressionEvaluator;
     private readonly ITranslationService _translationService;
     private readonly IRepositoryWriter _repositoryWriter;
-    private readonly IErrorHandler _errorHandler;
 
-    public ActionGitCheckoutV1Mapper(RepositoryExpressionEvaluator expressionEvaluator, ITranslationService translationService, IRepositoryWriter repositoryWriter, IErrorHandler errorHandler)
+    public ActionGitCheckoutV1Mapper(RepositoryExpressionEvaluator expressionEvaluator, ITranslationService translationService, IRepositoryWriter repositoryWriter)
     {
         _expressionEvaluator = expressionEvaluator ?? throw new ArgumentNullException(nameof(expressionEvaluator));
         _translationService = translationService ?? throw new ArgumentNullException(nameof(translationService));
         _repositoryWriter = repositoryWriter ?? throw new ArgumentNullException(nameof(repositoryWriter));
-        _errorHandler = errorHandler ?? throw new ArgumentNullException(nameof(errorHandler));
     }
 
     bool IActionToRepositoryActionMapper.CanMap(RepositoryAction action)

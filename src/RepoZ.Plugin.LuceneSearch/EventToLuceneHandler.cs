@@ -3,9 +3,11 @@ namespace RepoZ.Plugin.LuceneSearch;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 using RepoZ.Api;
 using RepoZ.Api.Git;
 
+[UsedImplicitly]
 internal class EventToLuceneHandler : IModule, IDisposable
 {
     private readonly IRepositoryMonitor _monitor;
@@ -43,21 +45,19 @@ internal class EventToLuceneHandler : IModule, IDisposable
         _monitor.OnDeletionDetected -= MonitorOnOnDeletionDetected;
     }
 
-    private void MonitorOnOnDeletionDetected(object sender, string path)
+    private void MonitorOnOnDeletionDetected(object? sender, string path)
     {
         _index.RemoveFromIndexByPath(path);
         _index.FlushAndCommit();
         (_search as SearchAdapter)?.ResetCache();
     }
 
-    private void MonitorOnOnChangeDetected(object sender, Repository e)
+    private void MonitorOnOnChangeDetected(object? sender, Repository e)
     {
-        var repo = new RepositorySearchModel
-            {
-                Path = e.Path,
-                RepositoryName = e.Name,
-                Tags = e.Tags.ToList(),
-            };
+        var repo = new RepositorySearchModel(
+            e.Name,
+            e.Path,
+            e.Tags.ToList());
 
         _index.ReIndexMediaFileAsync(repo);
         (_search as SearchAdapter)?.ResetCache();

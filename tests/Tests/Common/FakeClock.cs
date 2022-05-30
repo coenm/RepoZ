@@ -1,17 +1,16 @@
-namespace Tests.Common
+namespace Tests.Common;
+
+using RepoZ.Api.Common;
+using System;
+
+public class FakeClock : IClock
 {
-    using RepoZ.Api.Common;
-    using System;
-
-    public class FakeClock : IClock
+    public FakeClock(DateTime fakeValue)
     {
-        public FakeClock(DateTime fakeValue)
-        {
-            FakeValue = fakeValue;
-        }
-
-        public DateTime Now => FakeValue;
-
-        public DateTime FakeValue { get; }
+        FakeValue = fakeValue;
     }
+
+    public DateTime Now => FakeValue;
+
+    public DateTime FakeValue { get; }
 }

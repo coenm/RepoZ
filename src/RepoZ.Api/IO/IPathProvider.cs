@@ -1,7 +1,6 @@
-namespace RepoZ.Api.IO
+namespace RepoZ.Api.IO;
+
+public interface IPathProvider
 {
-    public interface IPathProvider
-    {
-        string[] GetPaths();
-    }
+    string[] GetPaths();
 }

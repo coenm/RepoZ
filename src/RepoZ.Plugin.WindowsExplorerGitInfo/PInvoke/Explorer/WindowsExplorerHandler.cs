@@ -1,26 +1,25 @@
-namespace RepoZ.Plugin.WindowsExplorerGitInfo.PInvoke.Explorer
+namespace RepoZ.Plugin.WindowsExplorerGitInfo.PInvoke.Explorer;
+
+using RepoZ.Api.Git;
+
+internal class WindowsExplorerHandler
 {
-    using RepoZ.Api.Git;
+    private readonly IRepositoryInformationAggregator _repositoryInfoAggregator;
 
-    internal class WindowsExplorerHandler
+    public WindowsExplorerHandler(IRepositoryInformationAggregator repositoryInfoAggregator)
     {
-        private readonly IRepositoryInformationAggregator _repositoryInfoAggregator;
+        _repositoryInfoAggregator = repositoryInfoAggregator;
+    }
 
-        public WindowsExplorerHandler(IRepositoryInformationAggregator repositoryInfoAggregator)
-        {
-            _repositoryInfoAggregator = repositoryInfoAggregator;
-        }
+    public void UpdateTitles()
+    {
+        var actor = new AppendRepositoryStatusTitleActor(_repositoryInfoAggregator);
+        actor.Pulse();
+    }
 
-        public void UpdateTitles()
-        {
-            var actor = new AppendRepositoryStatusTitleActor(_repositoryInfoAggregator);
-            actor.Pulse();
-        }
-
-        public void CleanTitles()
-        {
-            var actor = new CleanWindowTitleActor();
-            actor.Pulse();
-        }
+    public void CleanTitles()
+    {
+        var actor = new CleanWindowTitleActor();
+        actor.Pulse();
     }
 }

@@ -1,7 +1,6 @@
-namespace RepoZ.Api.Git
+namespace RepoZ.Api.Git;
+
+public interface IRepositoryReader
 {
-    public interface IRepositoryReader
-    {
-        Repository? ReadRepository(string path);
-    }
+    Repository? ReadRepository(string path);
 }

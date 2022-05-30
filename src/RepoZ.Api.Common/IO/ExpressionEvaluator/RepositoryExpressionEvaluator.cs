@@ -70,7 +70,7 @@ public class RepositoryExpressionEvaluator
         }
     }
 
-    public bool EvaluateBooleanExpression(string value, Repository? repository)
+    public bool EvaluateBooleanExpression(string? value, Repository? repository)
     {
         if (string.IsNullOrWhiteSpace(value))
         {
@@ -81,7 +81,7 @@ public class RepositoryExpressionEvaluator
         {
             Repository[] repositories = (repository == null) ? Array.Empty<Repository>() : new Repository[1] { repository };
 
-            CombinedTypeContainer result = _expressionExecutor.Execute<RepositoryContext>(new RepositoryContext(repositories), value);
+            CombinedTypeContainer result = _expressionExecutor.Execute<RepositoryContext>(new RepositoryContext(repositories), value!);
             if (result.IsBool(out var b))
             {
                 return b.Value;

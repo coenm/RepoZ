@@ -1,7 +1,6 @@
-namespace RepoZ.Api.Git
+namespace RepoZ.Api.Git;
+
+public interface IRepositoryObserverFactory
 {
-    public interface IRepositoryObserverFactory
-    {
-        IRepositoryObserver Create();
-    }
+    IRepositoryObserver Create();
 }

@@ -1,14 +1,13 @@
-namespace RepoZ.Plugin.WindowsExplorerGitInfo.PInvoke.Explorer
-{
-    using System;
+namespace RepoZ.Plugin.WindowsExplorerGitInfo.PInvoke.Explorer;
 
-    internal class CleanWindowTitleActor : ExplorerWindowActor
+using System;
+
+internal class CleanWindowTitleActor : ExplorerWindowActor
+{
+    protected override void Act(IntPtr hwnd, string explorerLocationUrl)
     {
-        protected override void Act(IntPtr hwnd, string explorerLocationUrl)
-        {
-            Console.WriteLine("Clean " + explorerLocationUrl);
-            const string SEPARATOR = "  [";
-            WindowHelper.RemoveAppendedWindowText(hwnd, SEPARATOR);
-        }
+        Console.WriteLine("Clean " + explorerLocationUrl);
+        const string SEPARATOR = "  [";
+        WindowHelper.RemoveAppendedWindowText(hwnd, SEPARATOR);
     }
 }

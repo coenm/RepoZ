@@ -1,9 +1,8 @@
-namespace Specs.Ipc
-{
-    using RepoZ.Ipc;
+namespace Specs.Ipc;
 
-    class TestIpcEndpoint : IIpcEndpoint
-    {
-        public string Address => "tcp://localhost:18182";
-    }
+using RepoZ.Ipc;
+
+class TestIpcEndpoint : IIpcEndpoint
+{
+    public string Address => "tcp://localhost:18182";
 }

@@ -1,9 +1,8 @@
-namespace RepoZ.Api
-{
-    using System.Collections.Generic;
+namespace RepoZ.Api;
 
-    public interface IRepositorySearch
-    {
-        IEnumerable<string> Search(string query);
-    }
+using System.Collections.Generic;
+
+public interface IRepositorySearch
+{
+    IEnumerable<string> Search(string query);
 }

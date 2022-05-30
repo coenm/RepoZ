@@ -1,7 +1,6 @@
-namespace RepoZ.Api.IO
+namespace RepoZ.Api.IO;
+
+public interface IGitRepositoryFinderFactory
 {
-    public interface IGitRepositoryFinderFactory
-    {
-        IGitRepositoryFinder Create();
-    }
+    IGitRepositoryFinder Create();
 }

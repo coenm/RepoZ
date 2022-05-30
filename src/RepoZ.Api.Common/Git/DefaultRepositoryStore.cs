@@ -1,26 +1,25 @@
-namespace RepoZ.Api.Common.Git
+namespace RepoZ.Api.Common.Git;
+
+using System;
+using System.IO;
+using System.IO.Abstractions;
+using RepoZ.Api.IO;
+
+public class DefaultRepositoryStore : FileRepositoryStore
 {
-    using System;
-    using System.IO;
-    using System.IO.Abstractions;
-    using RepoZ.Api.IO;
+    private readonly string _fullFilename;
 
-    public class DefaultRepositoryStore : FileRepositoryStore
+    public DefaultRepositoryStore(IErrorHandler errorHandler, IAppDataPathProvider appDataPathProvider, IFileSystem fileSystem)
+        : base(errorHandler, fileSystem)
     {
-        private readonly string _fullFilename;
-
-        public DefaultRepositoryStore(IErrorHandler errorHandler, IAppDataPathProvider appDataPathProvider, IFileSystem fileSystem)
-            : base(errorHandler, fileSystem)
-        {
-            AppDataPathProvider = appDataPathProvider ?? throw new ArgumentNullException(nameof(appDataPathProvider));
-            _fullFilename = Path.Combine(AppDataPathProvider.GetAppDataPath(), "Repositories.cache");
-        }
-
-        public override string GetFileName()
-        {
-            return _fullFilename;
-        }
-
-        public IAppDataPathProvider AppDataPathProvider { get; }
+        AppDataPathProvider = appDataPathProvider ?? throw new ArgumentNullException(nameof(appDataPathProvider));
+        _fullFilename = Path.Combine(AppDataPathProvider.GetAppDataPath(), "Repositories.cache");
     }
+
+    public override string GetFileName()
+    {
+        return _fullFilename;
+    }
+
+    public IAppDataPathProvider AppDataPathProvider { get; }
 }

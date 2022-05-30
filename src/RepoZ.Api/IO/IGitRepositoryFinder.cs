@@ -1,10 +1,9 @@
-namespace RepoZ.Api.IO
-{
-    using System;
-    using System.Collections.Generic;
+namespace RepoZ.Api.IO;
 
-    public interface IGitRepositoryFinder
-    {
-        List<string> Find(string root, Action<string> onFoundAction);
-    }
+using System;
+using System.Collections.Generic;
+
+public interface IGitRepositoryFinder
+{
+    List<string> Find(string root, Action<string> onFoundAction);
 }
