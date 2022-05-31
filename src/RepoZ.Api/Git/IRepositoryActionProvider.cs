@@ -4,9 +4,9 @@ using System.Collections.Generic;
 
 public interface IRepositoryActionProvider
 {
-    RepositoryAction? GetPrimaryAction(Repository repository);
+    RepositoryActionBase? GetPrimaryAction(Repository repository);
 
-    RepositoryAction? GetSecondaryAction(Repository repository);
+    RepositoryActionBase? GetSecondaryAction(Repository repository);
 
-    IEnumerable<RepositoryAction> GetContextMenuActions(IEnumerable<Repository> repositories);
+    IEnumerable<RepositoryActionBase> GetContextMenuActions(IEnumerable<Repository> repositories);
 }

@@ -32,7 +32,7 @@ public class ActionCommandV1Mapper : IActionToRepositoryActionMapper
         return false;
     }
 
-    IEnumerable<Api.Git.RepositoryAction> IActionToRepositoryActionMapper.Map(RepositoryAction action, IEnumerable<Repository> repository, ActionMapperComposition actionMapperComposition)
+    IEnumerable<RepositoryActionBase> IActionToRepositoryActionMapper.Map(RepositoryAction action, IEnumerable<Repository> repository, ActionMapperComposition actionMapperComposition)
     {
         return Map(action as RepositoryActionCommandV1, repository.First());
     }

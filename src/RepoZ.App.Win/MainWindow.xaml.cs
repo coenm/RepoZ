@@ -1,7 +1,6 @@
 namespace RepoZ.App.Win;
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -190,7 +189,7 @@ public partial class MainWindow : Window
         items.Clear();
 
         IEnumerable<Repository> innerRepositories = selectedViews.Select(view => view.Repository);
-        foreach (RepositoryAction action in _repositoryActionProvider.GetContextMenuActions(innerRepositories))
+        foreach (RepositoryActionBase action in _repositoryActionProvider.GetContextMenuActions(innerRepositories))
         {
             if (action is RepositorySeparatorAction)
             {
@@ -199,9 +198,18 @@ public partial class MainWindow : Window
                     items.Add(new Separator());
                 }
             }
+            else if (action is RepositoryAction _)
+            {
+                Control? controlItem = CreateMenuItem(sender, action, selectedViews);
+                if (controlItem != null)
+                {
+                    items.Add(controlItem);
+                }
+            }
             else
             {
-                items.Add(CreateMenuItem(sender, action, selectedViews));
+                // do nothing.
+                // log?
             }
         }
 
@@ -245,7 +253,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        RepositoryAction? action;
+        RepositoryActionBase? action;
 
         if (Keyboard.IsKeyDown(Key.LeftAlt) || Keyboard.IsKeyDown(Key.LeftCtrl))
         {
@@ -373,16 +381,22 @@ public partial class MainWindow : Window
         parent.ColumnDefinitions[Grid.GetColumn(UpdateButton)].Width = App.AvailableUpdate == null ? new GridLength(0) : GridLength.Auto;
     }
 
-    private static Control /*MenuItem*/ CreateMenuItem(object sender, RepositoryAction action, IEnumerable<RepositoryView>? affectedViews = null)
+    private static Control? /*MenuItem*/ CreateMenuItem(object sender, RepositoryActionBase action, IEnumerable<RepositoryView>? affectedViews = null)
     {
         if (action is RepositorySeparatorAction)
         {
             return new Separator();
         }
 
+        if (action is not RepositoryAction repositoryAction)
+        {
+            // throw??
+            return null;
+        }
+
         Action<object, object> clickAction = (object clickSender, object clickArgs) =>
             {
-                if (action?.Action == null)
+                if (repositoryAction?.Action == null)
                 {
                     return;
                 }
@@ -390,29 +404,29 @@ public partial class MainWindow : Window
                 var coords = new float[] { 0, 0, };
 
                 // run actions in the UI async to not block it
-                if (action.ExecutionCausesSynchronizing)
+                if (repositoryAction.ExecutionCausesSynchronizing)
                 {
                     Task.Run(() => SetViewsSynchronizing(affectedViews, true))
-                        .ContinueWith(t => action.Action(null, coords))
+                        .ContinueWith(t => repositoryAction.Action(null, coords))
                         .ContinueWith(t => SetViewsSynchronizing(affectedViews, false));
                 }
                 else
                 {
-                    Task.Run(() => action.Action(null, coords));
+                    Task.Run(() => repositoryAction.Action(null, coords));
                 }
             };
 
         var item = new AcrylicMenuItem()
             {
-                Header = action.Name,
-                IsEnabled = action.CanExecute,
+                Header = repositoryAction.Name,
+                IsEnabled = repositoryAction.CanExecute,
             };
         item.Click += new RoutedEventHandler(clickAction);
 
         // this is a deferred submenu. We want to make sure that the context menu can pop up
         // fast, while submenus are not evaluated yet. We don't want to make the context menu
         // itself slow because the creation of the submenu items takes some time.
-        if (action?.DeferredSubActionsEnumerator != null)
+        if (repositoryAction?.DeferredSubActionsEnumerator != null)
         {
             // this is a template submenu item to enable submenus under the current
             // menu item. this item gets removed when the real subitems are created
@@ -423,9 +437,13 @@ public partial class MainWindow : Window
                 item.SubmenuOpened -= SelfDetachingEventHandler;
                 item.Items.Clear();
 
-                foreach (RepositoryAction subAction in action.DeferredSubActionsEnumerator())
+                foreach (RepositoryActionBase subAction in repositoryAction.DeferredSubActionsEnumerator())
                 {
-                    item.Items.Add(CreateMenuItem(sender, subAction));
+                    Control? controlItem = CreateMenuItem(sender, subAction);
+                    if (controlItem != null)
+                    {
+                        item.Items.Add(controlItem);
+                    }
                 }
 
                 Console.WriteLine($"Added {item.Items.Count} deferred sub action(s).");
@@ -433,11 +451,15 @@ public partial class MainWindow : Window
 
             item.SubmenuOpened += SelfDetachingEventHandler;
         }
-        else if (action?.SubActions != null)
+        else if (repositoryAction?.SubActions != null)
         {
-            foreach (RepositoryAction subAction in action.SubActions)
+            foreach (RepositoryActionBase subAction in repositoryAction.SubActions)
             {
-                item.Items.Add(CreateMenuItem(sender, subAction));
+                Control? controlItem = CreateMenuItem(sender, subAction);
+                if (controlItem != null)
+                {
+                    item.Items.Add(controlItem);
+                }
             }
         }
 
@@ -563,12 +585,14 @@ public partial class MainWindow : Window
     private void TxtFilter_Finish(object sender, EventArgs e)
     {
         lstRepositories.Focus();
-        if (lstRepositories.Items.Count > 0)
+        if (lstRepositories.Items.Count <= 0)
         {
-            lstRepositories.SelectedIndex = 0;
-            var item = (ListBoxItem)lstRepositories.ItemContainerGenerator.ContainerFromIndex(0);
-            item?.Focus();
+            return;
         }
+
+        lstRepositories.SelectedIndex = 0;
+        var item = (ListBoxItem)lstRepositories.ItemContainerGenerator.ContainerFromIndex(0);
+        item?.Focus();
     }
 
     private string GetHelp(StatusCharacterMap statusCharacterMap)
@@ -585,17 +609,4 @@ public partial class MainWindow : Window
     }
 
     public bool IsShown => Visibility == Visibility.Visible && IsActive;
-}
-
-public class CustomRepositoryViewSortBehavior : IComparer
-{
-    public int Compare(object? x, object? y)
-    {
-        if (x is RepositoryView xView && y is RepositoryView yView)
-        {
-            return string.CompareOrdinal(xView.Name, yView.Name);
-        }
-
-        return 0;
-    }
 }

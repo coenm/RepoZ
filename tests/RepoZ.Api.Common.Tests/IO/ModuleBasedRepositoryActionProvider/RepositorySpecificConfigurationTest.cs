@@ -149,7 +149,7 @@ public class RepositorySpecificConfigurationTest
                 _repositoryExpressionEvaluator));
 
         // act
-        IEnumerable<RepositoryAction> result = sut.CreateActions(new Repository(), new Repository());
+        IEnumerable<RepositoryActionBase> result = sut.CreateActions(new Repository(), new Repository());
 
         // assert
         await Verifier.Verify(result, _verifySettings);
@@ -175,7 +175,7 @@ public class RepositorySpecificConfigurationTest
                 _repositoryExpressionEvaluator));
 
         // act
-        IEnumerable<RepositoryAction> result = sut.CreateActions(new Repository());
+        IEnumerable<RepositoryActionBase> result = sut.CreateActions(new Repository());
 
         // assert
         await Verifier.Verify(result, _verifySettings);
@@ -201,7 +201,7 @@ public class RepositorySpecificConfigurationTest
                 _repositoryExpressionEvaluator));
 
         // act
-        IEnumerable<RepositoryAction> result = sut.CreateActions(new Repository());
+        IEnumerable<RepositoryActionBase> result = sut.CreateActions(new Repository());
 
         // assert
         result.Should().BeEmpty();
@@ -227,7 +227,7 @@ public class RepositorySpecificConfigurationTest
                 _repositoryExpressionEvaluator));
 
         // act
-        IEnumerable<RepositoryAction> result = sut.CreateActions(new Repository());
+        IEnumerable<RepositoryActionBase> result = sut.CreateActions(new Repository());
 
         // assert
         await Verifier.Verify(result, _verifySettings);

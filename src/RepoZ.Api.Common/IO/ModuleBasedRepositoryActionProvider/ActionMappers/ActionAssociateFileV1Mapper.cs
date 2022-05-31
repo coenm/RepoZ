@@ -33,7 +33,7 @@ public class ActionAssociateFileV1Mapper : IActionToRepositoryActionMapper
         return false;
     }
 
-    IEnumerable<Api.Git.RepositoryAction> IActionToRepositoryActionMapper.Map(RepositoryAction action, IEnumerable<Repository> repository, ActionMapperComposition actionMapperComposition)
+    IEnumerable<RepositoryActionBase> IActionToRepositoryActionMapper.Map(RepositoryAction action, IEnumerable<Repository> repository, ActionMapperComposition actionMapperComposition)
     {
         return Map(action as RepositoryActionAssociateFileV1, repository.First());
     }

@@ -32,12 +32,12 @@ public class ActionGitCheckoutV1Mapper : IActionToRepositoryActionMapper
         return false;
     }
 
-    IEnumerable<Api.Git.RepositoryAction> IActionToRepositoryActionMapper.Map(RepositoryAction action, IEnumerable<Repository> repository, ActionMapperComposition actionMapperComposition)
+    IEnumerable<RepositoryActionBase> IActionToRepositoryActionMapper.Map(RepositoryAction action, IEnumerable<Repository> repository, ActionMapperComposition actionMapperComposition)
     {
         return Map(action as RepositoryActionGitCheckoutV1, repository.First());
     }
 
-    private IEnumerable<Api.Git.RepositoryAction> Map(RepositoryActionGitCheckoutV1? action, Repository repository)
+    private IEnumerable<Api.Git.RepositoryActionBase> Map(RepositoryActionGitCheckoutV1? action, Repository repository)
     {
         if (action == null)
         {
@@ -70,7 +70,7 @@ public class ActionGitCheckoutV1Mapper : IActionToRepositoryActionMapper
                                       Action = (_, _) => _repositoryWriter.Checkout(repository, branch),
                                       CanExecute = !repository.CurrentBranch.Equals(branch, StringComparison.OrdinalIgnoreCase),
                                   })
-                              .Union(new[]
+                              .Union(new RepositoryActionBase[]
                                   {
                                       new RepositorySeparatorAction(), // doesn't work todo
                                       new Api.Git.RepositoryAction(_translationService.Translate("Remote branches"))
@@ -90,7 +90,7 @@ public class ActionGitCheckoutV1Mapper : IActionToRepositoryActionMapper
                                                           return remoteBranches;
                                                       }
 
-                                                      return new Api.Git.RepositoryAction[]
+                                                      return new Api.Git.RepositoryActionBase[]
                                                           {
                                                               new Api.Git.RepositoryAction(_translationService.Translate("No remote branches found"))
                                                                   {

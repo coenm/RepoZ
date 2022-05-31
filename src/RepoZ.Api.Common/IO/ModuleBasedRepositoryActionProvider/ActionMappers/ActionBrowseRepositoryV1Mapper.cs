@@ -31,7 +31,7 @@ public class ActionBrowseRepositoryV1Mapper : IActionToRepositoryActionMapper
         return false;
     }
 
-    IEnumerable<RepositoryAction> IActionToRepositoryActionMapper.Map(Data.RepositoryAction action, IEnumerable<Repository> repository, ActionMapperComposition actionMapperComposition)
+    IEnumerable<RepositoryActionBase> IActionToRepositoryActionMapper.Map(Data.RepositoryAction action, IEnumerable<Repository> repository, ActionMapperComposition actionMapperComposition)
     {
         return Map(action as RepositoryActionBrowseRepositoryV1, repository.First());
     }

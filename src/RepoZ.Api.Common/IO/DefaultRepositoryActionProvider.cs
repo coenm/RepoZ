@@ -20,23 +20,23 @@ public class DefaultRepositoryActionProvider : IRepositoryActionProvider
         _repoSpecificConfig = repoSpecificConfig ?? throw new ArgumentNullException(nameof(repoSpecificConfig));
     }
 
-    public RepositoryAction? GetPrimaryAction(Repository repository)
+    public RepositoryActionBase? GetPrimaryAction(Repository repository)
     {
         return GetContextMenuActions(new[] { repository, }).FirstOrDefault();
     }
 
-    public RepositoryAction? GetSecondaryAction(Repository repository)
+    public RepositoryActionBase? GetSecondaryAction(Repository repository)
     {
-        IEnumerable<RepositoryAction> actions = GetContextMenuActions(new[] { repository, }).Take(2);
+        IEnumerable<RepositoryActionBase> actions = GetContextMenuActions(new[] { repository, }).Take(2);
         return actions.Count() > 1 ? actions.ElementAt(1) : null;
     }
 
-    public IEnumerable<RepositoryAction> GetContextMenuActions(IEnumerable<Repository> repositories)
+    public IEnumerable<RepositoryActionBase> GetContextMenuActions(IEnumerable<Repository> repositories)
     {
         return GetContextMenuActionsInternal(repositories.Where(r => _fileSystem.Directory.Exists(r.SafePath))).Where(a => a != null);
     }
 
-    private IEnumerable<RepositoryAction> GetContextMenuActionsInternal(IEnumerable<Repository> repos)
+    private IEnumerable<RepositoryActionBase> GetContextMenuActionsInternal(IEnumerable<Repository> repos)
     {
         Repository[] repositories = repos.ToArray();
 

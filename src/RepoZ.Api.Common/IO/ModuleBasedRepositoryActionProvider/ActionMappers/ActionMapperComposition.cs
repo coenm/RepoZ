@@ -19,7 +19,7 @@ public class ActionMapperComposition
         _deserializers = deserializers.Where(x => x != null).ToArray() ?? throw new ArgumentNullException(nameof(deserializers));
     }
 
-    public IEnumerable<RepositoryAction> Map(RepoZ.Api.Common.IO.ModuleBasedRepositoryActionProvider.Data.RepositoryAction action, params RepoZ.Api.Git.Repository[] repositories)
+    public IEnumerable<RepositoryActionBase> Map(RepoZ.Api.Common.IO.ModuleBasedRepositoryActionProvider.Data.RepositoryAction action, params RepoZ.Api.Git.Repository[] repositories)
     {
         Repository? singleRepository = repositories.Length <= 1 ? repositories.SingleOrDefault() : null;
         
@@ -45,7 +45,7 @@ public class ActionMapperComposition
 
         using IDisposable disposable = RepoZVariableProviderStore.Push(EvaluateVariables(action.Variables));
 
-        IEnumerable<RepositoryAction> result = deserializer?.Map(action, repositories, this) ?? Enumerable.Empty<RepositoryAction>();
+        IEnumerable<RepositoryActionBase> result = deserializer?.Map(action, repositories, this) ?? Enumerable.Empty<RepositoryAction>();
 
         return result;
 

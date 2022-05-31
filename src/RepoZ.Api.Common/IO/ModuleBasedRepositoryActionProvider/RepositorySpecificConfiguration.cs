@@ -12,6 +12,7 @@ using RepoZ.Api.Common.Common;
 using RepoZ.Api.Common.IO.ExpressionEvaluator;
 using RepoZ.Api.Common.IO.ModuleBasedRepositoryActionProvider.ActionMappers;
 using RepoZ.Api.Common.IO.ModuleBasedRepositoryActionProvider.Data;
+using RepoZ.Api.Git;
 using RepoZ.Api.IO;
 using Repository = RepoZ.Api.Git.Repository;
 using RepositoryAction = RepoZ.Api.Git.RepositoryAction;
@@ -403,7 +404,7 @@ public class RepositorySpecificConfiguration
         _repoConfigReader = repoConfigReader ?? throw new ArgumentNullException(nameof(repoConfigReader));
     }
 
-    public IEnumerable<RepositoryAction> CreateActions(params RepoZ.Api.Git.Repository[] repositories)
+    public IEnumerable<RepositoryActionBase> CreateActions(params RepoZ.Api.Git.Repository[] repositories)
     {
         if (repositories == null)
         {
@@ -471,9 +472,9 @@ public class RepositorySpecificConfiguration
                     }
                 }
 
-                IEnumerable<RepositoryAction> result = _actionMapper.Map(action, repositories);
+                IEnumerable<RepositoryActionBase> result = _actionMapper.Map(action, repositories);
 
-                foreach (RepositoryAction singleItem in result)
+                foreach (RepositoryActionBase singleItem in result)
                 {
                     yield return singleItem;
                 }

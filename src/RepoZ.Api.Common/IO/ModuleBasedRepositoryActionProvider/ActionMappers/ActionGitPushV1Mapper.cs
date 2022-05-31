@@ -32,7 +32,7 @@ public class ActionGitPushV1Mapper : IActionToRepositoryActionMapper
         return true;
     }
 
-    IEnumerable<Api.Git.RepositoryAction> IActionToRepositoryActionMapper.Map(RepositoryAction action, IEnumerable<Repository> repositories, ActionMapperComposition actionMapperComposition)
+    IEnumerable<RepositoryActionBase> IActionToRepositoryActionMapper.Map(RepositoryAction action, IEnumerable<Repository> repositories, ActionMapperComposition actionMapperComposition)
     {
         Repository[] repos = repositories as Repository[] ?? repositories.ToArray();
         if (repos.Any(r => !_expressionEvaluator.EvaluateBooleanExpression(action.Active, r)))
