@@ -1,5 +1,6 @@
 namespace RepoZ.Plugin.WindowsExplorerGitInfo.PInvoke.Explorer;
 
+using JetBrains.Annotations;
 using RepoZ.Api.Git;
 
 internal class WindowsExplorerHandler
@@ -17,6 +18,7 @@ internal class WindowsExplorerHandler
         actor.Pulse();
     }
 
+    [PublicAPI]
     public void CleanTitles()
     {
         var actor = new CleanWindowTitleActor();

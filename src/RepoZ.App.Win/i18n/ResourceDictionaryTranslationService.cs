@@ -8,7 +8,7 @@ using System.Windows;
 
 public class ResourceDictionaryTranslationService : ITranslationService
 {
-    private static ResourceDictionary _dictionary = null;
+    private static ResourceDictionary? _dictionary = null;
 
     public string Translate(string value)
     {

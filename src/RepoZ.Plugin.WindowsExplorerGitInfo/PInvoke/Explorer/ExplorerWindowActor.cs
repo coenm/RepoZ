@@ -25,8 +25,13 @@ internal abstract class ExplorerWindowActor
                 return;
             }
 
-            using var shell = new Combridge(comShellApplication);
-            IEnumerable comWindows = shell.InvokeMethod<IEnumerable>("Windows");
+            using var shell = new ComBridge(comShellApplication);
+            IEnumerable? comWindows = shell.InvokeMethod<IEnumerable>("Windows");
+            if (comWindows == null)
+            {
+                return;
+            }
+
             foreach (var comWindow in comWindows)
             {
                 if (comWindow == null)
@@ -34,7 +39,7 @@ internal abstract class ExplorerWindowActor
                     continue;
                 }
 
-                using var window = new Combridge(comWindow);
+                using var window = new ComBridge(comWindow);
                 var fullName = window.GetPropertyValue<string>("FullName");
                 var executable = Path.GetFileName(fullName);
                 if (string.Equals(executable, "explorer.exe", StringComparison.OrdinalIgnoreCase))
@@ -57,5 +62,5 @@ internal abstract class ExplorerWindowActor
         }
     }
 
-    protected abstract void Act(IntPtr hwnd, string explorerLocationUrl);
+    protected abstract void Act(IntPtr hwnd, string? explorerLocationUrl);
 }

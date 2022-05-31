@@ -1,4 +1,4 @@
-namespace grrui.UI;
+namespace Grrui.UI;
 
 using System;
 using System.Collections.Generic;
@@ -6,7 +6,7 @@ using Terminal.Gui;
 
 public class KeyPreviewWindow : Window
 {
-    private readonly Dictionary<Key, Action> _keyActions = new Dictionary<Key, Action>();
+    private readonly Dictionary<Key, Action> _keyActions = new();
 
     public KeyPreviewWindow(NStack.ustring title)
         : base(title)

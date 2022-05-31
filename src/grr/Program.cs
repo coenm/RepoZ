@@ -1,4 +1,4 @@
-namespace grr;
+namespace Grr;
 
 using System;
 using System.Collections.Generic;
@@ -7,8 +7,8 @@ using System.IO.Abstractions;
 using System.Linq;
 using System.Text;
 using CommandLine;
-using grr.Messages;
-using grr.Messages.Filters;
+using Grr.Messages;
+using Grr.Messages.Filters;
 using RepoZ.Ipc;
 
 static class Program
@@ -85,7 +85,7 @@ static class Program
                 return null;
             }
 
-            RepositoryFilterOptions? options = parseResult.GetType().GetProperty("Value").GetValue(parseResult) as RepositoryFilterOptions;
+            var options = parseResult.GetType()?.GetProperty("Value")?.GetValue(parseResult) as RepositoryFilterOptions;
 
             // yes, that's a hack. I feel not good about it. The CommandLineParser seems not to be able to parse "cd -" since version 2.3.0 anymore
             // and here we are, hacking our way around it ...
@@ -116,7 +116,7 @@ static class Program
             {
                 LastLocation = FindCallerWorkingDirectory(),
                 LastRepositories = repositories,
-                OverwriteRepositories = (repositories?.Length > 1) /* 0 or 1 repo should not overwrite the last list */
+                OverwriteRepositories = repositories?.Length > 1, /* 0 or 1 repo should not overwrite the last list */
 
                 // OverwriteRepositories = false?!
                 // if multiple repositories were found the last time we ran grr,
@@ -150,7 +150,7 @@ static class Program
             var userIndex = i + 1; // the index visible to the user are 1-based, not 0-based;
 
             var repoName = (repositories[i].Name.Length > MAX_REPO_NAME_LENGTH)
-                ? repositories[i].Name.Substring(0, MAX_REPO_NAME_LENGTH) + ellipsesSign
+                ? repositories[i].Name[..MAX_REPO_NAME_LENGTH] + ellipsesSign
                 : repositories[i].Name;
 
             Console.Write(" ");

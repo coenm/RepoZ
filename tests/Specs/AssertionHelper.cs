@@ -10,7 +10,7 @@ public static class AssertionHelper
 {
     public static void Expect(this DefaultRepositoryMonitor monitor, Action act, int changes, int deletes)
     {
-        ExpectInternal(monitor, act, out int actualChanges, out var actualDeletes);
+        ExpectInternal(monitor, act, out var actualChanges, out var actualDeletes);
 
         actualChanges.Should().Be(changes);
         actualDeletes.Should().Be(deletes);
@@ -22,7 +22,7 @@ public static class AssertionHelper
         Func<int, bool> changesAssertion,
         Func<int, bool> deletesAssertion)
     {
-        ExpectInternal(monitor, act, out int actualChanges, out int actualDeletes);
+        ExpectInternal(monitor, act, out var actualChanges, out var actualDeletes);
 
         changesAssertion(actualChanges).Should().BeTrue();
         deletesAssertion(actualDeletes).Should().BeTrue();

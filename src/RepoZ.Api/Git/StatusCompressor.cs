@@ -40,7 +40,7 @@ public class StatusCompressor
             {
                 if (isBehind)
                 {
-                    builder.Append($"{_statusCharacterMap.ArrowDownSign}{repository.BehindBy.Value}");
+                    builder.Append($"{_statusCharacterMap.ArrowDownSign}{repository.BehindBy}");
                 }
 
                 if (isAhead)
@@ -50,7 +50,7 @@ public class StatusCompressor
                         builder.Append(" ");
                     }
 
-                    builder.Append($"{_statusCharacterMap.ArrowUpSign}{repository.AheadBy.Value}");
+                    builder.Append($"{_statusCharacterMap.ArrowUpSign}{repository.AheadBy}");
                 }
             }
         }

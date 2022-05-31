@@ -10,7 +10,7 @@ public interface IRepositoryDetector
 
     void Stop();
 
-    Action<Repository> OnAddOrChange { get; set; }
+    Action<Repository>? OnAddOrChange { get; set; }
 
-    Action<string> OnDelete { get; set; }
+    Action<string>? OnDelete { get; set; }
 }

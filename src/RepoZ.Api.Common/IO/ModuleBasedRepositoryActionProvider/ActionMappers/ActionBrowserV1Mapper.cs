@@ -40,7 +40,7 @@ public class ActionBrowserV1Mapper : IActionToRepositoryActionMapper
         return Map(action as RepositoryActionBrowserV1, repository.First());
     }
 
-    public IEnumerable<Api.Git.RepositoryAction> Map(RepositoryActionBrowserV1? action, Repository repository)
+    private IEnumerable<Api.Git.RepositoryAction> Map(RepositoryActionBrowserV1? action, Repository repository)
     {
         if (action == null)
         {
@@ -59,9 +59,8 @@ public class ActionBrowserV1Mapper : IActionToRepositoryActionMapper
 
         var name = NameHelper.EvaluateName(action.Name, repository, _translationService, _expressionEvaluator);
         var url = _expressionEvaluator.EvaluateStringExpression(action.Url, repository);
-        yield return new RepositoryAction()
+        yield return new RepositoryAction(name)
             {
-                Name = name,
                 Action = (_, _) => ProcessHelper.StartProcess(url, string.Empty, _errorHandler),
             };
     }

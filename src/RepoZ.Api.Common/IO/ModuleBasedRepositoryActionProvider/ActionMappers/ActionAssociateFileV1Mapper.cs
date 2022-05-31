@@ -74,9 +74,8 @@ public class ActionAssociateFileV1Mapper : IActionToRepositoryActionMapper
 
     private Api.Git.RepositoryAction CreateProcessRunnerAction(string name, string process, string arguments = "")
     {
-        return new Api.Git.RepositoryAction()
+        return new Api.Git.RepositoryAction(name)
         {
-            Name = name,
             Action = (_, _) => ProcessHelper.StartProcess(process, arguments, _errorHandler),
         };
     }
@@ -88,9 +87,8 @@ public class ActionAssociateFileV1Mapper : IActionToRepositoryActionMapper
             return null;
         }
 
-        return new Api.Git.RepositoryAction()
+        return new Api.Git.RepositoryAction(actionName)
             {
-                Name = actionName,
                 DeferredSubActionsEnumerator = () =>
                     GetFiles(repository, filePattern)
                         .Select(solutionFile => NameHelper.ReplaceVariables(solutionFile, repository))

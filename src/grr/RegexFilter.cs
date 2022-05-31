@@ -1,4 +1,4 @@
-namespace grr;
+namespace Grr;
 
 using System;
 using System.Linq;

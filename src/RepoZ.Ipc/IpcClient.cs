@@ -1,6 +1,7 @@
 namespace RepoZ.Ipc;
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
@@ -65,10 +66,11 @@ public class IpcClient
         _answer = Encoding.UTF8.GetString(e.Socket.ReceiveFrameBytes());
 
         _repositories = _answer.Split(new string[] { Environment.NewLine, }, StringSplitOptions.None)
-                               .Select(s => Repository.FromString(s))
-                               .Where(r => r != null)
-                               .OrderBy(r => r.Name)
-                               .ToArray();
+                                                         .Select(s => Repository.FromString(s))
+                                                         .Where(r => r != null)
+                                                         .Cast<Repository>()
+                                                         .OrderBy(r => r.Name)
+                                                         .ToArray();
     }
 
     public IIpcEndpoint EndpointProvider { get; }

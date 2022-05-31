@@ -13,7 +13,7 @@ public class FileAppSettingsService : IAppSettingsService
 {
     private readonly IFileSystem _fileSystem;
     private AppSettings? _settings;
-    private readonly List<Action> _invalidationHandlers = new List<Action>();
+    private readonly List<Action> _invalidationHandlers = new();
     private readonly IAppDataPathProvider _appDataPathProvider;
 
     public FileAppSettingsService(IAppDataPathProvider appDataPathProvider, IFileSystem fileSystem)

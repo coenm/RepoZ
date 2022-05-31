@@ -12,7 +12,7 @@ internal class AppendRepositoryStatusTitleActor : ExplorerWindowActor
         _repositoryInfoAggregator = repositoryInfoAggregator;
     }
 
-    protected override void Act(IntPtr hwnd, string explorerLocationUrl)
+    protected override void Act(IntPtr hwnd, string? explorerLocationUrl)
     {
         if (string.IsNullOrEmpty(explorerLocationUrl))
         {

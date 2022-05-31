@@ -1,11 +1,11 @@
-namespace grrui;
+namespace Grrui;
 
-using grrui.Model;
-using grrui.UI;
-using RepoZ.Ipc;
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using Grrui.Model;
+using Grrui.UI;
+using RepoZ.Ipc;
 using Terminal.Gui;
 
 static class Program
@@ -151,7 +151,7 @@ static class Program
 
                 // type the path into the console which is hosting grrui.exe to change to the directory
                 TextCopy.ClipboardService.SetText(command);
-                grr.ConsoleExtensions.WriteConsoleInput(Process.GetCurrentProcess(), command, waitMilliseconds: 1000);
+                Grr.ConsoleExtensions.WriteConsoleInput(Process.GetCurrentProcess(), command, waitMilliseconds: 1000);
 
                 Application.RequestStop();
             });

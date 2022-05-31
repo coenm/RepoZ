@@ -1,7 +1,7 @@
-namespace grr.Messages.Filters;
+namespace Grr.Messages.Filters;
 
-using grr.History;
 using System;
+using Grr.History;
 
 public class GoBackMessageFilter : IMessageFilter
 {

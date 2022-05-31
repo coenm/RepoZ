@@ -12,9 +12,9 @@ using RepoZ.Api.Common.Git.AutoFetch;
 
 public class DefaultRepositoryMonitor : IRepositoryMonitor
 {
-    public event EventHandler<Repository> OnChangeDetected;
-    public event EventHandler<string> OnDeletionDetected;
-    public event EventHandler<bool> OnScanStateChanged;
+    public event EventHandler<Repository>? OnChangeDetected;
+    public event EventHandler<string>? OnDeletionDetected;
+    public event EventHandler<bool>? OnScanStateChanged;
 
     private List<IRepositoryDetector>? _detectors;
     private readonly Timer _storeFlushTimer;
@@ -67,9 +67,7 @@ public class DefaultRepositoryMonitor : IRepositoryMonitor
 
         var paths = _pathProvider.GetPaths();
 
-        IEnumerable<Task> tasks = paths.Select(path =>
-            {
-                return Task.Run(() => _gitRepositoryFinderFactory.Create().Find(path, OnFoundNewRepository))
+        IEnumerable<Task> tasks = paths.Select(path => Task.Run(() => _gitRepositoryFinderFactory.Create().Find(path, OnFoundNewRepository))
                            .ContinueWith(_ =>
                                {
                                    if (Interlocked.Increment(ref scannedPaths) != paths.Length)
@@ -79,8 +77,7 @@ public class DefaultRepositoryMonitor : IRepositoryMonitor
 
                                    Scanning = false;
                                    OnScanStateChanged?.Invoke(this, Scanning);
-                               });
-            });
+                               }));
 
         return Task.WhenAll(tasks);
     }

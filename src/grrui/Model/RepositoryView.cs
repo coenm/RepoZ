@@ -1,23 +1,25 @@
-namespace grrui.Model;
+namespace Grrui.Model;
 
-using RepoZ.Api.Git;
 using System;
+using RepoZ.Api.Git;
+using Repository = RepoZ.Ipc.Repository;
 
 public class RepositoryView : IRepositoryView
 {
-    public RepositoryView(RepoZ.Ipc.Repository repository)
+    public RepositoryView(Repository repository, string displayText)
     {
         Repository = repository ?? throw new ArgumentNullException(nameof(repository));
+        DisplayText = displayText;
     }
 
     public override string ToString()
     {
-        return DisplayText ?? string.Empty;
+        return DisplayText;
     }
 
     public RepoZ.Ipc.Repository Repository { get; }
 
-    public string DisplayText { get; set; }
+    public string DisplayText { get; }
 
     public string Name => Repository?.Name ?? "";
 

@@ -1,9 +1,9 @@
-namespace grr.Messages;
+namespace Grr.Messages;
 
-using RepoZ.Ipc;
 using System.Diagnostics;
 using System.IO.Abstractions;
 using System.Runtime.InteropServices;
+using RepoZ.Ipc;
 
 [System.Diagnostics.DebuggerDisplay("{GetRemoteCommand()}")]
 public class OpenDirectoryMessage : DirectoryMessage

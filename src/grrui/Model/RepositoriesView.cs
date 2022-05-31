@@ -1,9 +1,9 @@
-namespace grrui.Model;
+namespace Grrui.Model;
 
-using RepoZ.Api.Git;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using RepoZ.Api.Git;
 using Repository = RepoZ.Ipc.Repository;
 
 public class RepositoriesView
@@ -44,7 +44,7 @@ public class RepositoriesView
 
             var displayText = index + name + branch;
 
-            _repositoryViews[i] = new RepositoryView(repository) { DisplayText = displayText };
+            _repositoryViews[i] = new RepositoryView(repository, displayText);
         }
     }
 

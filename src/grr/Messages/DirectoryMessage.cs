@@ -1,4 +1,4 @@
-namespace grr.Messages;
+namespace Grr.Messages;
 
 using System;
 using System.IO.Abstractions;
@@ -29,8 +29,13 @@ public abstract class DirectoryMessage : IMessage
         }
     }
 
-    private void ExecuteExistingDirectoryWithSafetyCheck(string directory)
+    private void ExecuteExistingDirectoryWithSafetyCheck(string? directory)
     {
+        if (directory == null)
+        {
+            return;
+        }
+
         // use '/' for linux systems and bash command line (will work on cmd and powershell as well)
         directory = directory.Replace(@"\", "/");
         ExecuteExistingDirectory(directory);

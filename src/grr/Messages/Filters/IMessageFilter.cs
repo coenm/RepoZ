@@ -1,4 +1,4 @@
-namespace grr.Messages.Filters;
+namespace Grr.Messages.Filters;
 
 public interface IMessageFilter
 {

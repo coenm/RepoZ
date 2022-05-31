@@ -4,17 +4,19 @@ using System;
 
 public class HardcodededMiniHumanizer : IHumanizer
 {
+    private readonly IClock _clock;
+
     public HardcodededMiniHumanizer()
         : this(new SystemClock()) { }
 
     public HardcodededMiniHumanizer(IClock clock)
     {
-        Clock = clock ?? throw new ArgumentNullException(nameof(clock));
+        _clock = clock ?? throw new ArgumentNullException(nameof(clock));
     }
 
     public string HumanizeTimestamp(DateTime value)
     {
-        TimeSpan diff = Clock.Now - value;
+        TimeSpan diff = _clock.Now - value;
 
         var absoluteSeconds = Math.Abs(diff.TotalSeconds);
         var absoluteMinutes = Math.Abs(diff.TotalMinutes);
@@ -27,27 +29,27 @@ public class HardcodededMiniHumanizer : IHumanizer
             return "Just now";
         }
 
-        if (absoluteSeconds >= 55 && absoluteSeconds <= 80)
+        if (absoluteSeconds is >= 55 and <= 80)
         {
             return PastOrFuture("a minute", diff);
         }
 
-        if (absoluteSeconds > 80 && absoluteSeconds <= 100)
+        if (absoluteSeconds is > 80 and <= 100)
         {
             return PastOrFuture("nearly two minutes", diff);
         }
 
-        if (absoluteMinutes >= 55 && absoluteMinutes <= 75)
+        if (absoluteMinutes is >= 55 and <= 75)
         {
             return PastOrFuture("an hour", diff);
         }
 
-        if (absoluteMinutes > 75 && absoluteMinutes <= 100)
+        if (absoluteMinutes is > 75 and <= 100)
         {
             return PastOrFuture("one and a half hour", diff);
         }
 
-        if (absoluteHours >= 23 && absoluteHours <= 30)
+        if (absoluteHours is >= 23 and <= 30)
         {
             return PastOrFuture("a day", diff);
         }
@@ -68,7 +70,7 @@ public class HardcodededMiniHumanizer : IHumanizer
             return PastOrFuture($"{Math.Round(absoluteHours)} hours", diff);
         }
 
-        if (absoluteDays >= 1.5 && absoluteDays < 5)
+        if (absoluteDays is >= 1.5 and < 5)
         {
             return PastOrFuture($"{Math.Round(absoluteDays)} days", diff);
         }
@@ -82,6 +84,4 @@ public class HardcodededMiniHumanizer : IHumanizer
         var value = diff.TotalMilliseconds > 0 ? result + " ago" : "in " + result;
         return value.Substring(0, 1).ToUpper() + value.Substring(1);
     }
-
-    public IClock Clock { get; }
 }

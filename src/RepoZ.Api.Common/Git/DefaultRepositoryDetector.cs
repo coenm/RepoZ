@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 public sealed class DefaultRepositoryDetector : IRepositoryDetector, IDisposable
 {
     private const string HEAD_LOG_FILE = @".git\logs\HEAD";
-
     private FileSystemWatcher? _watcher;
     private readonly IRepositoryReader _repositoryReader;
 
@@ -17,9 +16,9 @@ public sealed class DefaultRepositoryDetector : IRepositoryDetector, IDisposable
         _repositoryReader = repositoryReader;
     }
 
-    public Action<Repository> OnAddOrChange { get; set; }
+    public Action<Repository>? OnAddOrChange { get; set; }
 
-    public Action<string> OnDelete { get; set; }
+    public Action<string>? OnDelete { get; set; }
 
     public void Setup(string path, int detectionToAlertDelayMilliseconds)
     {
@@ -134,14 +133,17 @@ public sealed class DefaultRepositoryDetector : IRepositoryDetector, IDisposable
 
     public void Dispose()
     {
-        if (_watcher != null)
+        if (_watcher == null)
         {
-            _watcher.Created -= WatcherCreated;
-            _watcher.Changed -= WatcherChanged;
-            _watcher.Deleted -= WatcherDeleted;
-            _watcher.Renamed -= WatcherRenamed;
-            _watcher.Dispose();
+            return;
         }
+
+        _watcher.Created -= WatcherCreated;
+        _watcher.Changed -= WatcherChanged;
+        _watcher.Deleted -= WatcherDeleted;
+        _watcher.Renamed -= WatcherRenamed;
+        _watcher.Dispose();
+        _watcher = null;
     }
 
     public int DetectionToAlertDelayMilliseconds { get; private set; }

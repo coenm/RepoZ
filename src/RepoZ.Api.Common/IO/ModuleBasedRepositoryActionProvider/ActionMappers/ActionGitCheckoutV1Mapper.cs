@@ -37,7 +37,7 @@ public class ActionGitCheckoutV1Mapper : IActionToRepositoryActionMapper
         return Map(action as RepositoryActionGitCheckoutV1, repository.First());
     }
 
-    public IEnumerable<Api.Git.RepositoryAction> Map(RepositoryActionGitCheckoutV1? action, Repository repository)
+    private IEnumerable<Api.Git.RepositoryAction> Map(RepositoryActionGitCheckoutV1? action, Repository repository)
     {
         if (action == null)
         {
@@ -60,30 +60,26 @@ public class ActionGitCheckoutV1Mapper : IActionToRepositoryActionMapper
             name = _translationService.Translate("Checkout");
         }
 
-        yield return new Api.Git.RepositoryAction()
+        yield return new Api.Git.RepositoryAction(_translationService.Translate("Checkout"))
             {
-                Name = _translationService.Translate("Checkout"),
                 DeferredSubActionsEnumerator = () =>
                     repository.LocalBranches
                               .Take(50)
-                              .Select(branch => new Api.Git.RepositoryAction()
+                              .Select(branch => new Api.Git.RepositoryAction(branch)
                                   {
-                                      Name = branch,
                                       Action = (_, _) => _repositoryWriter.Checkout(repository, branch),
                                       CanExecute = !repository.CurrentBranch.Equals(branch, StringComparison.OrdinalIgnoreCase),
                                   })
                               .Union(new[]
                                   {
                                       new RepositorySeparatorAction(), // doesn't work todo
-                                      new Api.Git.RepositoryAction()
+                                      new Api.Git.RepositoryAction(_translationService.Translate("Remote branches"))
                                           {
-                                              Name = _translationService.Translate("Remote branches"),
                                               DeferredSubActionsEnumerator = () =>
                                                   {
                                                       Api.Git.RepositoryAction[] remoteBranches = repository.ReadAllBranches()
-                                                                                                            .Select(branch => new Api.Git.RepositoryAction()
+                                                                                                            .Select(branch => new Api.Git.RepositoryAction(branch)
                                                                                                                 {
-                                                                                                                    Name = branch,
                                                                                                                     Action = (_, _) => _repositoryWriter.Checkout(repository, branch),
                                                                                                                     CanExecute = !repository.CurrentBranch.Equals(branch, StringComparison.OrdinalIgnoreCase),
                                                                                                                 })
@@ -96,14 +92,12 @@ public class ActionGitCheckoutV1Mapper : IActionToRepositoryActionMapper
 
                                                       return new Api.Git.RepositoryAction[]
                                                           {
-                                                              new Api.Git.RepositoryAction()
+                                                              new Api.Git.RepositoryAction(_translationService.Translate("No remote branches found"))
                                                                   {
-                                                                      Name = _translationService.Translate("No remote branches found"),
                                                                       CanExecute = false,
                                                                   },
-                                                              new Api.Git.RepositoryAction()
+                                                              new Api.Git.RepositoryAction(_translationService.Translate("Try to fetch changes if you're expecting remote branches"))
                                                                   {
-                                                                      Name = _translationService.Translate("Try to fetch changes if you're expecting remote branches"),
                                                                       CanExecute = false,
                                                                   },
                                                           };

@@ -109,9 +109,9 @@ public class RepositoryWriter
 
     public string Path { get; }
 
-    private static Identity Identity => new Identity("John Doe", "johndoe@anywhe.re");
+    private static Identity Identity => new("John Doe", "johndoe@anywhe.re");
 
-    private static Signature Signature => new Signature(Identity, DateTimeOffset.Now);
+    private static Signature Signature => new(Identity, DateTimeOffset.Now);
 
     public string CurrentBranch
     {

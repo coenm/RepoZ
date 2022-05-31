@@ -23,7 +23,7 @@ public static class WindowsCompositionHelper
             var accentStructSize = Marshal.SizeOf(accent);
             accent.AccentState = AccentState.ACCENT_ENABLE_BLURBEHIND;
 
-            var accentPtr = Marshal.AllocHGlobal(accentStructSize);
+            IntPtr accentPtr = Marshal.AllocHGlobal(accentStructSize);
             Marshal.StructureToPtr(accent, accentPtr, false);
 
             var data = new WindowCompositionAttributeData
@@ -33,7 +33,7 @@ public static class WindowsCompositionHelper
                     Data = accentPtr,
                 };
 
-            SetWindowCompositionAttribute(hwnd, ref data);
+            _ = SetWindowCompositionAttribute(hwnd, ref data);
 
             Marshal.FreeHGlobal(accentPtr);
         }
@@ -45,6 +45,9 @@ public static class WindowsCompositionHelper
 
     public static bool EnableDropShadow(IntPtr hwnd, Margins margins)
     {
+        // workaround for unused param. decided to keep param
+        _ = margins;
+
         try
         {
             var val = 2;

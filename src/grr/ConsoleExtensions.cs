@@ -1,27 +1,31 @@
-namespace grr;
+namespace Grr;
 
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 
+[SuppressMessage("ReSharper", "FieldCanBeMadeReadOnly.Local")]
 internal static class ConsoleExtensions
 {
     /// <summary>
     /// A utility class to determine a process parent.
     /// </summary>
+    [SuppressMessage("Style", "IDE0044:Add readonly modifier", Justification = "Not sure if naming can be altered")]
+    [SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "Not sure if naming can be altered")]
     [StructLayout(LayoutKind.Sequential)]
     public struct ParentProcessUtilities
     {
         // These members must match PROCESS_BASIC_INFORMATION
-        internal IntPtr Reserved1;
-        internal IntPtr PebBaseAddress;
-        internal IntPtr Reserved2_0;
-        internal IntPtr Reserved2_1;
-        internal IntPtr UniqueProcessId;
-        internal IntPtr InheritedFromUniqueProcessId;
+        private IntPtr Reserved1;
+        private IntPtr PebBaseAddress;
+        private IntPtr Reserved2_0;
+        private IntPtr Reserved2_1;
+        private IntPtr UniqueProcessId;
+        private IntPtr InheritedFromUniqueProcessId;
 
         [DllImport("ntdll.dll")]
         private static extern int NtQueryInformationProcess(
@@ -88,7 +92,7 @@ internal static class ConsoleExtensions
         private static Process? GetParentProcess(IntPtr handle)
         {
             var pbi = new ParentProcessUtilities();
-            var status = NtQueryInformationProcess(handle, 0, ref pbi, Marshal.SizeOf(pbi), out var returnLength);
+            var status = NtQueryInformationProcess(handle, 0, ref pbi, Marshal.SizeOf(pbi), out _);
             if (status != 0)
             {
                 throw new Win32Exception(status);
@@ -108,17 +112,22 @@ internal static class ConsoleExtensions
 
     public static void WriteConsoleInput(Process target, string value, int waitMilliseconds = 0)
     {
-        PrintDebug($"Write to console input {target.ProcessName} ({target.Id})");
+        PrintDebug($"Write {value} to console input {target.ProcessName} ({target.Id})");
 
         // Find the first process in the process tree which has a windows handle
-        target = ParentProcessUtilities.GetWindowedParentProcess(target.Id);
+        Process? parentProcess = ParentProcessUtilities.GetWindowedParentProcess(target.Id);
+        if (parentProcess == null)
+        {
+            // could not find parent to send key press to.
+            return;
+        }
 
-        PrintDebug($"Found a process, writing to process {target.ProcessName} ({target.Id})");
+        PrintDebug($"Found a process, writing to process {parentProcess.ProcessName} ({parentProcess.Id})");
 
         // send CTRL+V with Enter to insert the command
         var arguments = "^v{Enter}";
 
-        arguments = $"-pid:{target.Id} \"{arguments}\"";
+        arguments = $"-pid:{parentProcess.Id} \"{arguments}\"";
 
         if (waitMilliseconds > 0)
         {

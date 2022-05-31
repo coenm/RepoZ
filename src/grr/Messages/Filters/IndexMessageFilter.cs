@@ -1,7 +1,7 @@
-namespace grr.Messages.Filters;
+namespace Grr.Messages.Filters;
 
-using grr.History;
 using System;
+using Grr.History;
 
 public class IndexMessageFilter : IMessageFilter
 {
@@ -24,7 +24,7 @@ public class IndexMessageFilter : IMessageFilter
             return;
         }
 
-        var rest = filter.RepositoryFilter.Substring(1);
+        var rest = filter.RepositoryFilter[1..];
         if (!int.TryParse(rest, out var index))
         {
             return;
@@ -32,6 +32,11 @@ public class IndexMessageFilter : IMessageFilter
 
         index--; // the index visible to the user are 1-based, not 0-based
         State state = _historyRepository.Load();
+        if (state.LastRepositories == null)
+        {
+            return;
+        }
+
         if (index >= 0 && state.LastRepositories.Length > index)
         {
             filter.RepositoryFilter = state.LastRepositories[index]?.Name ?? filter.RepositoryFilter;

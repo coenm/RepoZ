@@ -16,18 +16,23 @@ using System.Runtime.InteropServices;
 /// <remarks>
 /// This class is not related to any cities or universities located in the UK.
 /// </remarks>
-internal class Combridge : IDisposable
+internal class ComBridge : IDisposable
 {
     private readonly Lazy<Type> _comType;
 
     /// <summary>
-    /// Creates a new instance of the Combridge COM wrapper class.
+    /// Gets the wrapped COM object for native access.
+    /// </summary>
+    private object? _comObject;
+
+    /// <summary>
+    /// Creates a new instance of the ComBridge COM wrapper class.
     /// </summary>
     /// <param name="comObject">The COM object to wrap.</param>
-    public Combridge(object comObject)
+    public ComBridge(object comObject)
     {
-        ComObject = comObject;
-        _comType = new Lazy<Type>(() => ComObject.GetType());
+        _comObject = comObject;
+        _comType = new Lazy<Type>(() => _comObject.GetType());
     }
 
     /// <summary>
@@ -36,12 +41,12 @@ internal class Combridge : IDisposable
     /// </summary>
     public void Dispose()
     {
-        if (ComObject != null)
+        if (_comObject != null)
         {
-            Marshal.FinalReleaseComObject(ComObject);
+            Marshal.FinalReleaseComObject(_comObject);
         }
 
-        ComObject = null;
+        _comObject = null;
     }
 
     /// <summary>
@@ -50,7 +55,7 @@ internal class Combridge : IDisposable
     /// <typeparam name="T">The expected type of the return value.</typeparam>
     /// <param name="methodName">The name of the method to invoke on the COM object.</param>
     /// <returns></returns>
-    public T InvokeMethod<T>(string methodName)
+    public T? InvokeMethod<T>(string methodName)
     {
         return GetValueViaReflection<T>(methodName, BindingFlags.InvokeMethod);
     }
@@ -61,7 +66,7 @@ internal class Combridge : IDisposable
     /// <typeparam name="T">The expected type of the return value.</typeparam>
     /// <param name="propertyName">The name of the property get the value from.</param>
     /// <returns></returns>
-    public T GetPropertyValue<T>(string propertyName)
+    public T? GetPropertyValue<T>(string propertyName)
     {
         return GetValueViaReflection<T>(propertyName, BindingFlags.GetProperty);
     }
@@ -74,13 +79,8 @@ internal class Combridge : IDisposable
     /// <param name="memberName">The name of the member (method or property) to call or to get the value from.</param>
     /// <param name="flags">The binding flags to decide whether to invoke methods or to retrieve property values.</param>
     /// <returns></returns>
-    private T GetValueViaReflection<T>(string memberName, BindingFlags flags)
+    private T? GetValueViaReflection<T>(string memberName, BindingFlags flags)
     {
-        return (T)_comType.Value.InvokeMember(memberName, flags, null, ComObject, null);
+        return (T?)_comType.Value.InvokeMember(memberName, flags, null, _comObject, null);
     }
-
-    /// <summary>
-    /// Gets the wrapped COM object for native access.
-    /// </summary>
-    private object? ComObject { get; set; }
 }

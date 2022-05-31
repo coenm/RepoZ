@@ -1,4 +1,4 @@
-namespace grr.Messages;
+namespace Grr.Messages;
 
 using System;
 using System.Collections.Generic;

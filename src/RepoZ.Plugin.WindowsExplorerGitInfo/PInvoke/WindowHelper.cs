@@ -1,10 +1,14 @@
 namespace RepoZ.Plugin.WindowsExplorerGitInfo.PInvoke;
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Text;
 
-internal class WindowHelper
+[SuppressMessage("ReSharper", "InconsistentNaming")]
+[SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "Reviewed")]
+[SuppressMessage("ReSharper", "IdentifierTypo")]
+internal static class WindowHelper
 {
     [DllImport("user32.dll", SetLastError = true)]
     private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint processId);
@@ -29,7 +33,7 @@ internal class WindowHelper
     public static string GetWindowText(IntPtr hwnd)
     {
         // Allocate correct string length first
-        var length = (int)SendMessage(hwnd, WM_GETTEXTLENGTH, IntPtr.Zero, null);
+        var length = (int)SendMessage(hwnd, WM_GETTEXTLENGTH, IntPtr.Zero, null!);
         var sb = new StringBuilder(length + 1);
         SendMessage(hwnd, WM_GETTEXT, (IntPtr)sb.Capacity, sb);
         return sb.ToString();
@@ -47,7 +51,7 @@ internal class WindowHelper
         var at = current.IndexOf(uniqueSplitter, StringComparison.OrdinalIgnoreCase);
         if (at > -1)
         {
-            current = current.Substring(0, at);
+            current = current[..at];
         }
 
         SetWindowTextApi(handle, current + uniqueSplitter + text);
@@ -60,7 +64,7 @@ internal class WindowHelper
         var at = current.IndexOf(uniqueSplitter, StringComparison.OrdinalIgnoreCase);
         if (at > -1)
         {
-            current = current.Substring(0, at);
+            current = current[..at];
             SetWindowTextApi(handle, current);
         }
     }

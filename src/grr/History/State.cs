@@ -1,4 +1,4 @@
-namespace grr.History;
+namespace Grr.History;
 
 using RepoZ.Ipc;
 

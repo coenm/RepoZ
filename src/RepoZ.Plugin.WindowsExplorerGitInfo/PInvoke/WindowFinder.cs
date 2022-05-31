@@ -3,11 +3,15 @@ namespace RepoZ.Plugin.WindowsExplorerGitInfo.PInvoke;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using RepoZ.Api.IO;
 
+[SuppressMessage("ReSharper", "InconsistentNaming")]
+[SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "Reviewed")]
+[SuppressMessage("ReSharper", "IdentifierTypo")]
 internal class WindowFinder
 {
     private readonly IEnumerable<IPathFinder> _pathFinders;
@@ -40,7 +44,7 @@ internal class WindowFinder
     public static string GetWindowTextRaw(IntPtr hwnd)
     {
         // Allocate correct string length first
-        var length = (int)SendMessage(hwnd, WM_GETTEXTLENGTH, IntPtr.Zero, null);
+        var length = (int)SendMessage(hwnd, WM_GETTEXTLENGTH, IntPtr.Zero, null!);
         var sb = new StringBuilder(length + 1);
         SendMessage(hwnd, WM_GETTEXT, (IntPtr)sb.Capacity, sb);
         return sb.ToString();
@@ -53,7 +57,7 @@ internal class WindowFinder
         var at = current.IndexOf('@');
         if (at > -1)
         {
-            current = current.Substring(0, at);
+            current = current[..at];
         }
 
         if (!current.EndsWith(" ", StringComparison.OrdinalIgnoreCase))

@@ -126,80 +126,78 @@ public class ProcessExecutingGitCommander : IGitCommander
         var output = new StringBuilder();
         var error = new StringBuilder();
 
-        using (var outputWaitHandle = new AutoResetEvent(initialState: false))
-        using (var errorWaitHandle = new AutoResetEvent(initialState: false))
-        using (var process = new Process())
+        using var outputWaitHandle = new AutoResetEvent(initialState: false);
+        using var errorWaitHandle = new AutoResetEvent(initialState: false);
+        using var process = new Process();
+        process.StartInfo = psi;
+
+        process.OutputDataReceived += (sender, e) =>
+            {
+                if (e.Data == null)
+                {
+                    try
+                    {
+                        outputWaitHandle.Set();
+                    }
+                    catch (ObjectDisposedException)
+                    {
+                        // if the wait handle was disposed,
+                        // we can ignore the call to .Set()
+                    }
+                }
+                else
+                {
+                    output.AppendLine(e.Data);
+                }
+            };
+
+        process.ErrorDataReceived += (sender, e) =>
+            {
+                if (e.Data == null)
+                {
+                    try
+                    {
+                        errorWaitHandle.Set();
+                    }
+                    catch (ObjectDisposedException)
+                    {
+                        // if the wait handle was disposed,
+                        // we can ignore the call to .Set()
+                    }
+                }
+                else
+                {
+                    error.AppendLine(e.Data);
+                }
+            };
+
+        try
         {
-            process.StartInfo = psi;
+            process.Start();
+            process.BeginOutputReadLine();
+            process.BeginErrorReadLine();
 
-            process.OutputDataReceived += (sender, e) =>
-                {
-                    if (e.Data == null)
-                    {
-                        try
-                        {
-                            outputWaitHandle.Set();
-                        }
-                        catch (ObjectDisposedException)
-                        {
-                            // if the wait handle was disposed,
-                            // we can ignore the call to .Set()
-                        }
-                    }
-                    else
-                    {
-                        output.AppendLine(e.Data);
-                    }
-                };
-
-            process.ErrorDataReceived += (sender, e) =>
-                {
-                    if (e.Data == null)
-                    {
-                        try
-                        {
-                            errorWaitHandle.Set();
-                        }
-                        catch (ObjectDisposedException)
-                        {
-                            // if the wait handle was disposed,
-                            // we can ignore the call to .Set()
-                        }
-                    }
-                    else
-                    {
-                        error.AppendLine(e.Data);
-                    }
-                };
-
-            try
+            if (process.WaitForExit(timeout) &&
+                outputWaitHandle.WaitOne(timeout) &&
+                errorWaitHandle.WaitOne(timeout))
             {
-                process.Start();
-                process.BeginOutputReadLine();
-                process.BeginErrorReadLine();
-
-                if (process.WaitForExit(timeout) &&
-                    outputWaitHandle.WaitOne(timeout) &&
-                    errorWaitHandle.WaitOne(timeout))
-                {
-                    // Process completed. Check process.ExitCode here.
-                    return output.ToString();
-                }
-
-                // Timed out.
-                return error?.ToString() ?? "Unknown error";
+                // Process completed. Check process.ExitCode here.
+                return output.ToString();
             }
-            finally
-            {
-                if (!process.WaitForExit((int)TimeSpan.FromSeconds(10).TotalMilliseconds))
-                {
-                    throw new GitCommandException("Command did not terminate.");
-                }
 
-                if (process.ExitCode != 0)
-                {
-                    throw new GitCommandException($"Command exited with error code: {process.ExitCode}\n{error?.ToString() ?? "Unknown error"}");
-                }
+            // Timed out.
+            return error?.ToString() ?? "Unknown error";
+        }
+        finally
+        {
+            if (!process.WaitForExit((int)TimeSpan.FromSeconds(10).TotalMilliseconds))
+            {
+                throw new GitCommandException("Command did not terminate.");
+            }
+
+            if (process.ExitCode != 0)
+            {
+                throw new GitCommandException($"Command exited with error code: {process.ExitCode}\n{error?.ToString() ?? "Unknown error"}");
             }
         }
     }
@@ -214,7 +212,7 @@ public class ProcessExecutingGitCommander : IGitCommander
         return arg.Contains(" ") ? ("\"" + arg + "\"") : arg;
     }
 
-    private static readonly Regex _validCommandName = new Regex("^[a-z0-9A-Z_-]+$", RegexOptions.Compiled);
+    private static readonly Regex _validCommandName = new("^[a-z0-9A-Z_-]+$", RegexOptions.Compiled);
 
     private static void AssertValidCommand(string[] command)
     {

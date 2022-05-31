@@ -57,9 +57,8 @@ public class ActionFolderV1Mapper : IActionToRepositoryActionMapper
 
         if (deferred)
         {
-            yield return new Api.Git.RepositoryAction()
+            yield return new Api.Git.RepositoryAction(name)
                 {
-                    Name = name,
                     CanExecute = true,
                     DeferredSubActionsEnumerator = () =>
                         action.Items
@@ -70,9 +69,8 @@ public class ActionFolderV1Mapper : IActionToRepositoryActionMapper
         }
         else
         {
-            yield return new Api.Git.RepositoryAction()
+            yield return new Api.Git.RepositoryAction(name)
                 {
-                    Name = name,
                     CanExecute = true,
                     SubActions = action.Items
                                        .Where(x => _expressionEvaluator.EvaluateBooleanExpression(x.Active, repository))

@@ -1,12 +1,12 @@
-namespace grr;
+namespace Grr;
 
 using CommandLine;
 
 public class RepositoryFilterOptions
 {
-    [Value(0)] public string RepositoryFilter { get; set; }
+    [Value(0)] public string? RepositoryFilter { get; set; }
 
-    [Value(1)] public string FileFilter { get; set; }
+    [Value(1)] public string? FileFilter { get; set; }
 
     [Option('r', "recursive", Default = false, HelpText = "Defines whether the file filter should be applied recursively or not.")]
     public bool RecursiveFileFilter { get; set; }

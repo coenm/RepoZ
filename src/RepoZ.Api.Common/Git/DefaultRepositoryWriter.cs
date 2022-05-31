@@ -19,33 +19,31 @@ public class DefaultRepositoryWriter : IRepositoryWriter
 
     public bool Checkout(Api.Git.Repository repository, string branchName)
     {
-        using (var repo = new LibGit2Sharp.Repository(repository.Path))
+        using var repo = new LibGit2Sharp.Repository(repository.Path);
+        Branch branch;
+
+        // Check if local branch exists
+        if (repo.Branches.Any(b => b.FriendlyName == branchName))
         {
-            Branch branch;
-
-            // Check if local branch exists
-            if (repo.Branches.Any(b => b.FriendlyName == branchName))
-            {
-                branch = Commands.Checkout(repo, branchName);
-            }
-            else
-            {
-                // Create local branch to remote branch tip and set its upstream branch to remote
-                Branch upstreamBranch = repo.Branches.FirstOrDefault(b => string.Equals(b.UpstreamBranchCanonicalName, "refs/heads/" + branchName, StringComparison.OrdinalIgnoreCase));
-
-                if (upstreamBranch is null)
-                {
-                    return false;
-                }
-
-                _ = repo.CreateBranch(branchName, upstreamBranch.Tip);
-                SetUpstream(repository, branchName, upstreamBranch.FriendlyName);
-
-                branch = Commands.Checkout(repo, branchName);
-            }
-
-            return branch.FriendlyName == branchName;
+            branch = Commands.Checkout(repo, branchName);
         }
+        else
+        {
+            // Create local branch to remote branch tip and set its upstream branch to remote
+            Branch? upstreamBranch = repo.Branches.FirstOrDefault(b => string.Equals(b.UpstreamBranchCanonicalName, "refs/heads/" + branchName, StringComparison.OrdinalIgnoreCase));
+
+            if (upstreamBranch is null)
+            {
+                return false;
+            }
+
+            _ = repo.CreateBranch(branchName, upstreamBranch.Tip);
+            SetUpstream(repository, branchName, upstreamBranch.FriendlyName);
+
+            branch = Commands.Checkout(repo, branchName);
+        }
+
+        return branch.FriendlyName == branchName;
     }
 
     public void Fetch(Api.Git.Repository repository)

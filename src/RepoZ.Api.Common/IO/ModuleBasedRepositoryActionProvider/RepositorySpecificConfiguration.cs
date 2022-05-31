@@ -88,14 +88,14 @@ public class RepositoryConfigurationReader
         _repoExpressionEvaluator = repoExpressionEvaluator ?? throw new ArgumentNullException(nameof(repoExpressionEvaluator));
     }
 
-    public (Dictionary<string, string> envVars, List<Variable> Variables, List<ActionsCollection> actions, List<TagsCollection> tags) Get(params RepoZ.Api.Git.Repository[] repositories)
+    public (Dictionary<string, string>? envVars, List<Variable>? Variables, List<ActionsCollection>? actions, List<TagsCollection>? tags) Get(params RepoZ.Api.Git.Repository[] repositories)
     {
         if (!repositories.Any())
         {
             return (null, null, null, null);
         }
 
-        Repository repository = repositories.FirstOrDefault(); //todo
+        Repository? repository = repositories.FirstOrDefault(); //todo
         if (repository == null)
         {
             return (null, null, null, null);
@@ -266,14 +266,15 @@ public class RepositoryConfigurationReader
         return (envVars, variables, actions, tags);
     }
 
-    private string Evaluate(string? input, Repository repository)
+    private string Evaluate(string? input, Repository? repository)
     {
         if (string.IsNullOrWhiteSpace(input))
         {
             return input ?? string.Empty;
         }
 
-        return _repoExpressionEvaluator.EvaluateStringExpression(input!, repository);
+        Repository[] repositories = repository == null ? Array.Empty<Repository>() : new Repository[] { repository, };
+        return _repoExpressionEvaluator.EvaluateStringExpression(input!, repositories);
     }
 
     private bool IsEnabled(string? booleanExpression, bool defaultWhenNullOrEmpty, Repository? repository)
@@ -322,9 +323,9 @@ public class RepositoryTagsConfigurationFactory : IRepositoryTagsFactory
                    .ToList();
         }
 
-        Dictionary<string, string> repositoryEnvVars;
-        List<Variable> variables;
-        List<TagsCollection> tags;
+        Dictionary<string, string>? repositoryEnvVars;
+        List<Variable>? variables;
+        List<TagsCollection>? tags;
 
         try
         {
@@ -339,7 +340,7 @@ public class RepositoryTagsConfigurationFactory : IRepositoryTagsFactory
         using IDisposable d1 = RepoZVariableProviderStore.Push(EvaluateVariables(variables));
         using IDisposable d2 = RepoZEnvironmentVariableStore.Set(repositoryEnvVars);
 
-        foreach (TagsCollection tagsCollection in tags.Where(t => t != null))
+        foreach (TagsCollection tagsCollection in tags?.Where(t => t != null) ?? Array.Empty<TagsCollection>())
         {
             using IDisposable d3 = RepoZVariableProviderStore.Push(EvaluateVariables(tagsCollection.Variables));
 
@@ -500,23 +501,20 @@ public class RepositorySpecificConfiguration
 
     private IEnumerable<RepositoryAction> CreateFailing(Exception ex, string? filename)
     {
-        yield return new RepositoryAction()
+        yield return new RepositoryAction(_translationService.Translate("Could not read repository actions"))
             {
-                Name = _translationService.Translate("Could not read repository actions"),
                 CanExecute = false,
             };
 
-        yield return new RepositoryAction()
+        yield return new RepositoryAction(ex.Message)
             {
-                Name = ex.Message,
                 CanExecute = false,
             };
 
         if (!string.IsNullOrWhiteSpace(filename))
         {
-            yield return new RepositoryAction()
+            yield return new RepositoryAction(_translationService.Translate("Fix"))
                 {
-                    Name = _translationService.Translate("Fix"),
                     Action = (_, _) => ProcessHelper.StartProcess(_fileSystem.Path.GetDirectoryName(filename), string.Empty, _errorHandler),
                 };
         }

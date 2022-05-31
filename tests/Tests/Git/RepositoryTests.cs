@@ -7,8 +7,8 @@ using Tests.Helper;
 
 public class RepositoryTests
 {
-    private readonly RepositoryBuilder _builder1 = new RepositoryBuilder();
-    private readonly RepositoryBuilder _builder2 = new RepositoryBuilder();
+    private readonly RepositoryBuilder _builder1 = new();
+    private readonly RepositoryBuilder _builder2 = new();
 
     public class EqualsMethod : RepositoryTests
     {

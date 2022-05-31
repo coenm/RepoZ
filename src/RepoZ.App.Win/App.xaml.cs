@@ -45,7 +45,7 @@ public partial class App : Application, IRepositorySource
     private TaskbarIcon? _notifyIcon;
     private List<IModule>? _modules;
     private IAppSettingsService? _settings;
-    private static readonly Container _container = new Container();
+    private static readonly Container _container = new();
 
     [STAThread]
     public static void Main()
@@ -70,7 +70,6 @@ public partial class App : Application, IRepositorySource
 
         _notifyIcon = FindResource("NotifyIcon") as TaskbarIcon;
 
-        
         RegisterServices(_container);
         UseRepositoryMonitor(_container);
         _container.Verify(VerificationOption.VerifyAndDiagnose);
@@ -276,9 +275,8 @@ public partial class App : Application, IRepositorySource
         IRepositoryInformationAggregator aggregator = _container.GetInstance<IRepositoryInformationAggregator>();
         return aggregator.Repositories
                          .Where(r => r.MatchesRegexFilter(repositoryNamePattern))
-                         .Select(r => new Ipc.Repository
+                         .Select(r => new Ipc.Repository(r.Name)
                              {
-                                 Name = r.Name,
                                  BranchWithStatus = r.BranchWithStatus,
                                  HasUnpushedChanges = r.HasUnpushedChanges,
                                  Path = r.Path,

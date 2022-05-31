@@ -40,9 +40,8 @@ public class RepoZIpcClientTests
                 .Setup(rs => rs.GetMatchingRepositories(It.IsAny<string>()))
                 .Returns(new Repository[]
                     {
-                        new Repository()
+                        new Repository("N")
                             {
-                                Name = "N",
                                 BranchWithStatus = "B",
                                 Path = "P",
                             },

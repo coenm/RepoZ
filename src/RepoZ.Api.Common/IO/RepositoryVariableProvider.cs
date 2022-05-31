@@ -13,7 +13,7 @@ public class RepositoryVariableProvider : IVariableProvider<RepositoryContext>
         return !string.IsNullOrWhiteSpace(key) && key.StartsWith("Repository.", StringComparison.CurrentCultureIgnoreCase);
     }
 
-    public string Provide(RepositoryContext context, string key, string arg)
+    public string Provide(RepositoryContext context, string key, string? arg)
     {
         Repository? repository = context.Repositories.SingleOrDefault();
         if (repository == null)
@@ -67,7 +67,7 @@ public class RepositoryVariableProvider : IVariableProvider<RepositoryContext>
         throw new NotImplementedException();
     }
 
-    public string Provide(string key, string arg)
+    public string Provide(string key, string? arg)
     {
         throw new NotImplementedException();
     }

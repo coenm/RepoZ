@@ -53,9 +53,8 @@ public class ActionCommandV1Mapper : IActionToRepositoryActionMapper
         var command = _expressionEvaluator.EvaluateStringExpression(action.Command ?? string.Empty, repository);
         var arguments = _expressionEvaluator.EvaluateStringExpression(action.Arguments ?? string.Empty, repository); 
 
-        yield return new Api.Git.RepositoryAction
+        yield return new Api.Git.RepositoryAction(name)
             {
-                Name = name,
                 Action = (_, _) => ProcessHelper.StartProcess(command, arguments, _errorHandler),
             };
     }

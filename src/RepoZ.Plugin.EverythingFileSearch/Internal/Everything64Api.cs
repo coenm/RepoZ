@@ -10,7 +10,7 @@ using System.Text;
 /// <remarks>See <see href="https://www.voidtools.com/support/everything/sdk/csharp/"/> for the SDK.</remarks>
 internal static class Everything64Api
 {
-    private static readonly object _lock = new object();
+    private static readonly object _lock = new();
     private const int EVERYTHING_REQUEST_FILE_NAME = 0x00000001;
     private const int EVERYTHING_REQUEST_PATH = 0x00000002;
 

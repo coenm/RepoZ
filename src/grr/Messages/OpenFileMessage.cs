@@ -1,11 +1,11 @@
-namespace grr.Messages;
+namespace Grr.Messages;
 
-using RepoZ.Ipc;
 using System;
 using System.Diagnostics;
 using System.IO.Abstractions;
 using System.Linq;
 using System.Runtime.InteropServices;
+using RepoZ.Ipc;
 
 [System.Diagnostics.DebuggerDisplay("{GetRemoteCommand()}")]
 public class OpenFileMessage : FileMessage

@@ -13,8 +13,13 @@ public static class RepoZEnvironmentVariableStore
 {
     private static readonly AsyncLocal<Dictionary<string, string>> _envVars = new();
 
-    public static IDisposable Set(Dictionary<string, string> envVars)
+    public static IDisposable Set(Dictionary<string, string>? envVars)
     {
+        if (envVars == null)
+        {
+            return new ExecuteOnDisposed(null );
+        }
+
         _envVars.Value = envVars;
         return new ExecuteOnDisposed(() => _envVars.Value = new Dictionary<string, string>());
     }
@@ -27,9 +32,9 @@ public static class RepoZEnvironmentVariableStore
 
 public class ExecuteOnDisposed : IDisposable
 {
-    private readonly Func<Dictionary<string, string>> _func;
+    private readonly Func<Dictionary<string, string>>? _func;
 
-    public ExecuteOnDisposed(Func<Dictionary<string, string>> func)
+    public ExecuteOnDisposed(Func<Dictionary<string, string>>? func)
     {
         _func = func;
     }
@@ -42,7 +47,7 @@ public class ExecuteOnDisposed : IDisposable
 
 public static class RepoZVariableProviderStore
 {
-    public static readonly AsyncLocal<Scope?> VariableScope = new AsyncLocal<Scope?>();
+    public static readonly AsyncLocal<Scope?> VariableScope = new();
 
     public static IDisposable Push(List<Variable> vars)
     {
@@ -92,11 +97,6 @@ public class RepoZVariableProvider : IVariableProvider
     /// <inheritdoc cref="IVariableProvider.CanProvide"/>
     public bool CanProvide(string key)
     {
-        if (key is null)
-        {
-            return false;
-        }
-
         if (!key.StartsWith(PREFIX, StringComparison.CurrentCultureIgnoreCase))
         {
             return false;
@@ -114,7 +114,7 @@ public class RepoZVariableProvider : IVariableProvider
     }
 
     /// <inheritdoc cref="IVariableProvider.Provide"/>
-    public string Provide(string key, string arg)
+    public string Provide(string key, string? arg)
     {
         var prefixLength = PREFIX.Length;
         var envKey = key.Substring(prefixLength, key.Length - prefixLength);
@@ -139,14 +139,20 @@ public class RepoZVariableProvider : IVariableProvider
 
     private static bool TryGetValueFromScope(in Scope scope, string key, out string value)
     {
-        Variable? var = scope.Variables.FirstOrDefault(x => x.Name.Equals(key, StringComparison.CurrentCultureIgnoreCase));
+        Variable? var = scope.Variables.FirstOrDefault(x => key.Equals(x.Name, StringComparison.CurrentCultureIgnoreCase));
 
         if (var != null)
         {
-            if (var.Enabled.Equals("false",StringComparison.CurrentCultureIgnoreCase))
+            if ("false".Equals(var.Enabled, StringComparison.CurrentCultureIgnoreCase))
             {
                 value = string.Empty;
                 return true;
+            }
+
+            if (var.Value == null)
+            {
+                value = string.Empty;
+                return false;
             }
 
             value = var.Value;
@@ -165,11 +171,6 @@ public class CustomEnvironmentVariableVariableProvider : IVariableProvider<Repos
     /// <inheritdoc cref="IVariableProvider.CanProvide"/>
     public bool CanProvide(string key)
     {
-        if (key is null)
-        {
-            return false;
-        }
-
         if (!key.StartsWith(PREFIX, StringComparison.CurrentCultureIgnoreCase))
         {
             return false;
@@ -186,7 +187,7 @@ public class CustomEnvironmentVariableVariableProvider : IVariableProvider<Repos
         return !string.IsNullOrWhiteSpace(envKey);
     }
 
-    public string Provide(RepositoryContext context, string key, string arg)
+    public string Provide(RepositoryContext context, string key, string? arg)
     {
         var prefixLength = PREFIX.Length;
         var envKey = key.Substring(prefixLength, key.Length - prefixLength);
@@ -209,7 +210,7 @@ public class CustomEnvironmentVariableVariableProvider : IVariableProvider<Repos
     }
 
     /// <inheritdoc cref="IVariableProvider.Provide"/>
-    public string Provide(string key, string arg)
+    public string Provide(string key, string? arg)
     {
         var prefixLength = PREFIX.Length;
         var envKey = key.Substring(prefixLength, key.Length - prefixLength);

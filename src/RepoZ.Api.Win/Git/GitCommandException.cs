@@ -1,11 +1,11 @@
-namespace RepoZ.Api.Win.IO;
+namespace RepoZ.Api.Win.Git;
 
 using System;
 using System.Diagnostics;
 
 public class GitCommandException : Exception
 {
-    public Process Process { get; set; }
+    public Process? Process { get; private set; }
 
     public GitCommandException(string message, Process process)
         : base(message)
@@ -13,23 +13,9 @@ public class GitCommandException : Exception
         Process = process;
     }
 
-    public GitCommandException() :
-        base()
-    {
-    }
-
-    public GitCommandException(string message)
-        : base(message)
-    {
-    }
-
-    public GitCommandException(string message, Exception innerException)
-        : base(message, innerException)
-    {
-    }
-
-    protected GitCommandException(System.Runtime.Serialization.SerializationInfo info, System.Runtime.Serialization.StreamingContext context)
+  protected GitCommandException(System.Runtime.Serialization.SerializationInfo info, System.Runtime.Serialization.StreamingContext context)
         : base(info, context)
-    {
-    }
+  {
+      Process = null;
+  }
 }

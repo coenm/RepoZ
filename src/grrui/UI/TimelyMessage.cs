@@ -1,4 +1,4 @@
-namespace grrui.UI;
+namespace Grrui.UI;
 
 using System;
 using System.Threading.Tasks;

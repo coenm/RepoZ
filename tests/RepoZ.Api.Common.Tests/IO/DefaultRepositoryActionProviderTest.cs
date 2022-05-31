@@ -33,7 +33,7 @@ public class DefaultRepositoryActionProviderTest
     private readonly IRepositoryWriter _repositoryWriter = A.Fake<IRepositoryWriter>();
     private readonly IRepositoryMonitor _repositoryMonitor = A.Fake<IRepositoryMonitor>();
     private readonly ITranslationService _translationService = A.Fake<ITranslationService>();
-    private readonly MockFileSystem _fileSystem = new MockFileSystem();
+    private readonly MockFileSystem _fileSystem = new();
     private readonly List<IVariableProvider> _providers;
     private readonly List<IMethod> _methods;
 
@@ -102,7 +102,7 @@ public class DefaultRepositoryActionProviderTest
     {
         // arrange
         var repositoryExpressionEvaluator = new RepositoryExpressionEvaluator(_providers, _methods);
-        var dynamicRepositoryActionDeserializer = DynamicRepositoryActionDeserializerFactory.Create();
+        DynamicRepositoryActionDeserializer dynamicRepositoryActionDeserializer = DynamicRepositoryActionDeserializerFactory.Create();
         var sut = new DefaultRepositoryActionProvider(
             _fileSystem,
             new RepositorySpecificConfiguration(

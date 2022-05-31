@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -9,8 +9,9 @@
     <PackageProjectUrl>https://github.com/awaescher/RepoZ</PackageProjectUrl>
     <PackageIconUrl>https://raw.githubusercontent.com/awaescher/RepoZ/master/grr/grr.ico</PackageIconUrl>
     <RepositoryUrl>https://github.com/awaescher/RepoZ</RepositoryUrl>
-    <ReleaseVersion>4.0</ReleaseVersion>
-    <Version>1.0.0.0</Version>
+    <ReleaseVersion>5.5</ReleaseVersion>
+    <Version>5.5.2.0</Version>
+    <RootNamespace>$(MSBuildProjectName.Replace(" ", "_").Replace("g","G"))</RootNamespace>
     <!-- <DefineConstants>$(DefineConstants);FEATURE_ENUMERATION_OPTIONS</DefineConstants> -->
 </PropertyGroup>
 

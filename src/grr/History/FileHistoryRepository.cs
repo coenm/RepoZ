@@ -1,12 +1,12 @@
-namespace grr.History;
+namespace Grr.History;
 
-using RepoZ.Ipc;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
 using System.Text;
+using RepoZ.Ipc;
 
 public class FileHistoryRepository : IHistoryRepository
 {
@@ -107,7 +107,7 @@ public class FileHistoryRepository : IHistoryRepository
 
         return repositoryString
                .Split(new [] { "|", }, StringSplitOptions.None)
-               .Select(s => new Repository() { Name = s, })
+               .Select(s => new Repository(s))
                .ToArray();
     }
 }

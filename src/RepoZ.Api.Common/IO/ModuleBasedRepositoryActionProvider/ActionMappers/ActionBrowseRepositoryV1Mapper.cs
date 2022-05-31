@@ -75,9 +75,8 @@ public class ActionBrowseRepositoryV1Mapper : IActionToRepositoryActionMapper
             return CreateProcessRunnerAction(actionName, repository.RemoteUrls[0]);
         }
 
-        return new RepositoryAction()
+        return new RepositoryAction(actionName)
             {
-                Name = actionName,
                 DeferredSubActionsEnumerator = () => repository.RemoteUrls
                                                                .Take(50)
                                                                .Select(url => CreateProcessRunnerAction(url, url))
@@ -87,9 +86,8 @@ public class ActionBrowseRepositoryV1Mapper : IActionToRepositoryActionMapper
 
     private RepositoryAction CreateProcessRunnerAction(string name, string process, string arguments = "")
     {
-        return new RepositoryAction
+        return new RepositoryAction(name)
             {
-                Name = name,
                 Action = (_, _) => ProcessHelper.StartProcess(process, arguments, _errorHandler),
             };
     }

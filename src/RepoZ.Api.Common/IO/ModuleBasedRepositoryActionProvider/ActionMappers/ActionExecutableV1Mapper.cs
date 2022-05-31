@@ -79,9 +79,8 @@ public class ActionExecutableV1Mapper : IActionToRepositoryActionMapper
                 arguments = _expressionEvaluator.EvaluateStringExpression(action.Arguments, repository);
             }
 
-            yield return new Api.Git.RepositoryAction
+            yield return new Api.Git.RepositoryAction(name)
                 {
-                    Name = name,
                     Action = (_, _) => ProcessHelper.StartProcess(normalized, arguments, _errorHandler),
                 };
             found = true;

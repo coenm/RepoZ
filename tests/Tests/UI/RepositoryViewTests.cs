@@ -229,13 +229,6 @@ public class RepositoryViewTests
         {
             _view.Name.Should().Be(_repo.Name);
         }
-
-        [Test]
-        public void Returns_An_Empty_String_For_Null()
-        {
-            _repo.Name = null;
-            _view.Name.Should().BeEmpty();
-        }
     }
 
     public class PathProperty : RepositoryViewTests
@@ -244,13 +237,6 @@ public class RepositoryViewTests
         public void Returns_The_Repository_Value()
         {
             _view.Path.Should().Be(_repo.Path);
-        }
-
-        [Test]
-        public void Returns_An_Empty_String_For_Null()
-        {
-            _repo.Path = null;
-            _view.Path.Should().BeEmpty();
         }
     }
 
@@ -354,13 +340,6 @@ public class RepositoryViewTests
         public void Returns_False_If_Path_Is_Empty()
         {
             _repo.Path = "";
-            _view.WasFound.Should().BeFalse();
-        }
-
-        [Test]
-        public void Returns_False_If_Path_Is_Null()
-        {
-            _repo.Path = null;
             _view.WasFound.Should().BeFalse();
         }
     }

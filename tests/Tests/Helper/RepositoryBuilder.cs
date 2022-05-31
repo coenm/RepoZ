@@ -1,6 +1,6 @@
-using RepoZ.Api.Git;
-
 namespace Tests.Helper;
+
+using RepoZ.Api.Git;
 
 public class RepositoryBuilder
 {

@@ -8,7 +8,7 @@ using RepoZ.Api;
 internal class SearchAdapter : IRepositorySearch
 {
     private readonly IRepositoryIndex _index;
-    private List<RepositorySearchResult> _cache  = new List<RepositorySearchResult>();
+    private List<RepositorySearchResult> _cache  = new();
     private string _query = string.Empty;
     private DateTime _now = DateTime.MinValue;
     private readonly object _l = new();

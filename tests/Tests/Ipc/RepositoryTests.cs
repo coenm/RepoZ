@@ -48,9 +48,8 @@ public class RepositoryTests
         [Test]
         public void Serializes_With_Four_Arguments()
         {
-            var r = new Repository
+            var r = new Repository("N")
                 {
-                    Name = "N",
                     BranchWithStatus = "B",
                     Path = "P"
                 };
@@ -60,9 +59,8 @@ public class RepositoryTests
         [Test]
         public void Returns_Null_For_Less_Than_Mandatory_Arguments()
         {
-            var r = new Repository
+            var r = new Repository("N")
                 {
-                    Name = "N",
                     BranchWithStatus = "B"
                 };
             r.ToString().Should().Be("");
