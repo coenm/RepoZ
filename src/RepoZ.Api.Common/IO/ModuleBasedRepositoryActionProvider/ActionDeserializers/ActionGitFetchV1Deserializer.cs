@@ -12,12 +12,12 @@ public class ActionGitFetchV1Deserializer : IActionDeserializer
         return "git-fetch@1".Equals(type, StringComparison.CurrentCultureIgnoreCase);
     }
 
-    RepositoryAction IActionDeserializer.Deserialize(JToken jToken, ActionDeserializerComposition actionDeserializer)
+    RepositoryAction? IActionDeserializer.Deserialize(JToken jToken, ActionDeserializerComposition actionDeserializer)
     {
         return Deserialize(jToken);
     }
 
-    public RepositoryActionGitFetchV1 Deserialize(JToken jToken)
+    private static RepositoryActionGitFetchV1? Deserialize(JToken jToken)
     {
         return jToken.ToObject<RepositoryActionGitFetchV1>();
     }

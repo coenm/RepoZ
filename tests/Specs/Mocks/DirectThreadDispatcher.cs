@@ -1,10 +1,12 @@
+namespace Specs.Mocks;
+
 using System;
 using RepoZ.Api.Common;
 
-namespace Specs
+internal class DirectThreadDispatcher : IThreadDispatcher
 {
-    internal class DirectThreadDispatcher : IThreadDispatcher
+    public void Invoke(Action act)
     {
-        public void Invoke(Action act) => act();
+        act();
     }
 }

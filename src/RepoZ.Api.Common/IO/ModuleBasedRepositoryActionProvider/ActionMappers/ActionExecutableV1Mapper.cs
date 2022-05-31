@@ -31,18 +31,23 @@ public class ActionExecutableV1Mapper : IActionToRepositoryActionMapper
         return action is RepositoryActionExecutableV1;
     }
 
-    bool IActionToRepositoryActionMapper.CanHandleMultipeRepositories()
+    bool IActionToRepositoryActionMapper.CanHandleMultipleRepositories()
     {
         return false;
     }
 
-    IEnumerable<Api.Git.RepositoryAction> IActionToRepositoryActionMapper.Map(RepositoryAction action, IEnumerable<Repository> repository, ActionMapperComposition actionMapperComposition)
+    IEnumerable<RepositoryActionBase> IActionToRepositoryActionMapper.Map(RepositoryAction action, IEnumerable<Repository> repository, ActionMapperComposition actionMapperComposition)
     {
         return Map(action as RepositoryActionExecutableV1, repository.First());
     }
 
-    private IEnumerable<Api.Git.RepositoryAction> Map(RepositoryActionExecutableV1 action, Repository repository)
+    private IEnumerable<Api.Git.RepositoryAction> Map(RepositoryActionExecutableV1? action, Repository repository)
     {
+        if (action == null)
+        {
+            yield break;
+        }
+
         if (!_expressionEvaluator.EvaluateBooleanExpression(action.Active, repository))
         {
             yield break;
@@ -67,10 +72,15 @@ public class ActionExecutableV1Mapper : IActionToRepositoryActionMapper
                 continue;
             }
 
-            var arguments = _expressionEvaluator.EvaluateStringExpression(action.Arguments, repository);
-            yield return new Api.Git.RepositoryAction
+            var arguments = string.Empty;
+
+            if (action.Arguments is not null)
+            {
+                arguments = _expressionEvaluator.EvaluateStringExpression(action.Arguments, repository);
+            }
+
+            yield return new Api.Git.RepositoryAction(name)
                 {
-                    Name = name,
                     Action = (_, _) => ProcessHelper.StartProcess(normalized, arguments, _errorHandler),
                 };
             found = true;

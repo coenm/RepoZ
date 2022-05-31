@@ -1,9 +1,8 @@
-namespace RepoZ.Api.Common.Git.AutoFetch
-{
-    using System;
+namespace RepoZ.Api.Common.Git.AutoFetch;
 
-    public class AutoFetchProfile
-    {
-        public TimeSpan PauseBetweenFetches { get; set; }
-    }
+using System;
+
+public class AutoFetchProfile
+{
+    public TimeSpan PauseBetweenFetches { get; set; }
 }

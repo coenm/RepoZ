@@ -1,7 +1,6 @@
-namespace RepoZ.Ipc
+namespace RepoZ.Ipc;
+
+public interface IIpcEndpoint
 {
-    public interface IIpcEndpoint
-    {
-        string Address { get; }
-    }
+    string Address { get; }
 }

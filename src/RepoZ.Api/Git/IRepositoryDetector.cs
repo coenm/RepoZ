@@ -1,17 +1,16 @@
-namespace RepoZ.Api.Git
+namespace RepoZ.Api.Git;
+
+using System;
+
+public interface IRepositoryDetector
 {
-    using System;
+    void Setup(string path, int detectionToAlertDelayMilliseconds);
 
-    public interface IRepositoryDetector
-    {
-        void Setup(string path, int detectionToAlertDelayMilliseconds);
+    void Start();
 
-        void Start();
+    void Stop();
 
-        void Stop();
+    Action<Repository>? OnAddOrChange { get; set; }
 
-        Action<Repository> OnAddOrChange { get; set; }
-
-        Action<string> OnDelete { get; set; }
-    }
+    Action<string>? OnDelete { get; set; }
 }

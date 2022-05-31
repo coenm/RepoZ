@@ -5,7 +5,7 @@ using JetBrains.Annotations;
 [UsedImplicitly]
 public class FileReference
 {
-    public string Filename { get; set; }
+    public string? Filename { get; set; }
 
-    public string When { get; set; }
+    public string? When { get; set; }
 }

@@ -9,7 +9,7 @@ public interface IActionToRepositoryActionMapper
 {
     bool CanMap(RepoZ.Api.Common.IO.ModuleBasedRepositoryActionProvider.Data.RepositoryAction action);
 
-    bool CanHandleMultipeRepositories();
+    bool CanHandleMultipleRepositories();
 
-    IEnumerable<RepositoryAction> Map(Data.RepositoryAction action, IEnumerable<Repository> repository, ActionMapperComposition actionMapperComposition);
+    IEnumerable<RepositoryActionBase> Map(Data.RepositoryAction action, IEnumerable<Repository> repository, ActionMapperComposition actionMapperComposition);
 }

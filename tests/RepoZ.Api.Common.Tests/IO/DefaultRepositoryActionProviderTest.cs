@@ -15,16 +15,13 @@ using ExpressionStringEvaluator.VariableProviders.DateTime;
 using ExpressionStringEvaluator.VariableProviders;
 using FakeItEasy;
 using RepoZ.Api.Common.Common;
-using RepoZ.Api.Common.Git;
 using RepoZ.Api.Common.IO;
 using RepoZ.Api.Common.IO.ExpressionEvaluator;
 using RepoZ.Api.Common.IO.ModuleBasedRepositoryActionProvider;
-using RepoZ.Api.Common.IO.ModuleBasedRepositoryActionProvider.ActionDeserializers;
 using RepoZ.Api.Git;
 using RepoZ.Api.IO;
 using VerifyXunit;
 using Xunit;
-using RepoZ.Api.Common.IO.ModuleBasedRepositoryActionProvider.ActionMappers;
 using RepoZ.Api.Common.Tests.IO.ModuleBasedRepositoryActionProvider;
 
 [UsesEasyTestFile]
@@ -36,7 +33,7 @@ public class DefaultRepositoryActionProviderTest
     private readonly IRepositoryWriter _repositoryWriter = A.Fake<IRepositoryWriter>();
     private readonly IRepositoryMonitor _repositoryMonitor = A.Fake<IRepositoryMonitor>();
     private readonly ITranslationService _translationService = A.Fake<ITranslationService>();
-    private readonly MockFileSystem _fileSystem = new MockFileSystem();
+    private readonly MockFileSystem _fileSystem = new();
     private readonly List<IVariableProvider> _providers;
     private readonly List<IMethod> _methods;
 
@@ -45,7 +42,7 @@ public class DefaultRepositoryActionProviderTest
         A.CallTo(() => _appDataPathProvider.GetAppDataPath()).Returns("GetAppDataPath");
         A.CallTo(() => _appDataPathProvider.GetAppResourcesPath()).Returns("GetAppResourcesPath");
 
-        A.CallTo(() => _translationService.Translate(A<string>._)).ReturnsLazily(call => call.Arguments[0] as string);
+        A.CallTo(() => _translationService.Translate(A<string>._)).ReturnsLazily(call => (call.Arguments[0] as string)!);
 
         var dateTimeTimeVariableProviderOptions = new DateTimeVariableProviderOptions()
         {
@@ -105,7 +102,7 @@ public class DefaultRepositoryActionProviderTest
     {
         // arrange
         var repositoryExpressionEvaluator = new RepositoryExpressionEvaluator(_providers, _methods);
-        var dynamicRepositoryActionDeserializer = DynamicRepositoryActionDeserializerFactory.Create();
+        DynamicRepositoryActionDeserializer dynamicRepositoryActionDeserializer = DynamicRepositoryActionDeserializerFactory.Create();
         var sut = new DefaultRepositoryActionProvider(
             _fileSystem,
             new RepositorySpecificConfiguration(
@@ -133,15 +130,14 @@ public class DefaultRepositoryActionProviderTest
                 LocalBranches = new[] { "develop", },
                 RemoteUrls = new[] { "https://github.com/coenm/RepoZ.git", },
             };
-    
+
         // act
-        RepositoryAction result = sut.GetPrimaryAction(repository);
+        RepositoryActionBase? result = sut.GetPrimaryAction(repository)!;
         
         // assert
         A.CallTo(_errorHandler).MustNotHaveHappened();
         await Verifier.Verify(new
             {
-                result.Name,
                 result.CanExecute,
                 result.ExecutionCausesSynchronizing,
             }).ModifySerialization(s => s.DontIgnoreFalse());

@@ -1,11 +1,10 @@
-namespace RepoZ.Api.IO
+namespace RepoZ.Api.IO;
+
+public interface ISingleGitRepositoryFinderFactory
 {
-    public interface ISingleGitRepositoryFinderFactory
-    {
-        string Name { get; }
+    string Name { get; }
 
-        bool IsActive { get; }
+    bool IsActive { get; }
 
-        IGitRepositoryFinder Create();
-    }
+    IGitRepositoryFinder Create();
 }

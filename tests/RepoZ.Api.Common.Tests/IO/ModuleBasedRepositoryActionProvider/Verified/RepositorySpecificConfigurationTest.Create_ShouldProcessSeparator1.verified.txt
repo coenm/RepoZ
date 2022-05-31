@@ -1,5 +1,6 @@
 ﻿[
   {
+    $type: RepositoryAction,
     Name: Google 1,
     Action: {
       Type: Action<object, object>,
@@ -13,6 +14,7 @@
     CanExecute: true
   },
   {
+    $type: RepositoryAction,
     Name: Google 2,
     Action: {
       Type: Action<object, object>,

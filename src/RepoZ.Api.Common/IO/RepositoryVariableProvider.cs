@@ -1,7 +1,6 @@
 namespace RepoZ.Api.Common.IO;
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using ExpressionStringEvaluator.VariableProviders;
 using RepoZ.Api.Common.IO.ExpressionEvaluator;
@@ -14,9 +13,9 @@ public class RepositoryVariableProvider : IVariableProvider<RepositoryContext>
         return !string.IsNullOrWhiteSpace(key) && key.StartsWith("Repository.", StringComparison.CurrentCultureIgnoreCase);
     }
 
-    public string Provide(RepositoryContext context, string key, string arg)
+    public string Provide(RepositoryContext context, string key, string? arg)
     {
-        Repository repository = context?.Repositories.SingleOrDefault();
+        Repository? repository = context.Repositories.SingleOrDefault();
         if (repository == null)
         {
             return string.Empty;
@@ -68,7 +67,7 @@ public class RepositoryVariableProvider : IVariableProvider<RepositoryContext>
         throw new NotImplementedException();
     }
 
-    public string Provide(string key, string arg)
+    public string Provide(string key, string? arg)
     {
         throw new NotImplementedException();
     }

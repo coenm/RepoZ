@@ -1,28 +1,31 @@
-namespace RepoZ.Api.Git
+namespace RepoZ.Api.Git;
+
+using System;
+using System.Collections.Generic;
+
+public class RepositorySeparatorAction : RepositoryActionBase
 {
-    using System;
-    using System.Collections.Generic;
+}
 
-    public class RepositorySeparatorAction : RepositoryAction/*, RepositoryActionBase*/
+public class RepositoryAction : RepositoryActionBase
+{
+    public RepositoryAction(string name)
     {
+        Name = name;
     }
 
-    public class RepositoryAction : RepositoryActionBase
-    {
-        public string Name { get; set; }
+    public string Name { get; }
+}
 
-        public Action<object, object> Action { get; set; }
+public abstract class RepositoryActionBase
+{
+    public Action<object?, object>? Action { get; set; }
 
-        public bool ExecutionCausesSynchronizing { get; set; }
+    public bool ExecutionCausesSynchronizing { get; set; }
 
-        public bool CanExecute { get; set; } = true;
+    public bool CanExecute { get; set; } = true;
 
-        public Func<RepositoryAction[]> DeferredSubActionsEnumerator { get; set; }
+    public Func<RepositoryActionBase[]>? DeferredSubActionsEnumerator { get; set; }
 
-        public IEnumerable<RepositoryAction> SubActions { get; set; }
-    }
-
-    public abstract class RepositoryActionBase
-    {
-    }
+    public IEnumerable<RepositoryActionBase>? SubActions { get; set; }
 }

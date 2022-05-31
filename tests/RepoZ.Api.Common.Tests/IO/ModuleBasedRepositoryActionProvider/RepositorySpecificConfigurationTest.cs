@@ -22,7 +22,6 @@ using RepoZ.Api.Common.Common;
 using RepoZ.Api.Common.IO;
 using RepoZ.Api.Common.IO.ExpressionEvaluator;
 using RepoZ.Api.Common.IO.ModuleBasedRepositoryActionProvider;
-using RepoZ.Api.Common.IO.ModuleBasedRepositoryActionProvider.ActionDeserializers;
 using RepoZ.Api.Common.IO.ModuleBasedRepositoryActionProvider.ActionMappers;
 using RepoZ.Api.Git;
 using RepoZ.Api.IO;
@@ -116,7 +115,7 @@ public class RepositorySpecificConfigurationTest
         _repositoryExpressionEvaluator = new RepositoryExpressionEvaluator(providers, methods);
 
         _translationService = A.Fake<ITranslationService>();
-        A.CallTo(() => _translationService.Translate(A<string>._)).ReturnsLazily(call => call.Arguments[0] as string);
+        A.CallTo(() => _translationService.Translate(A<string>._)).ReturnsLazily(call => (call.Arguments[0] as string)!);
         _errorHandler = A.Fake<IErrorHandler>();
         IRepositoryWriter repositoryWriter = A.Fake<IRepositoryWriter>();
         IRepositoryMonitor repositoryMonitor = A.Fake<IRepositoryMonitor>();
@@ -150,7 +149,7 @@ public class RepositorySpecificConfigurationTest
                 _repositoryExpressionEvaluator));
 
         // act
-        IEnumerable<RepositoryAction> result = sut.CreateActions(new Repository(), new Repository());
+        IEnumerable<RepositoryActionBase> result = sut.CreateActions(new Repository(), new Repository());
 
         // assert
         await Verifier.Verify(result, _verifySettings);
@@ -176,7 +175,7 @@ public class RepositorySpecificConfigurationTest
                 _repositoryExpressionEvaluator));
 
         // act
-        IEnumerable<RepositoryAction> result = sut.CreateActions(new Repository());
+        IEnumerable<RepositoryActionBase> result = sut.CreateActions(new Repository());
 
         // assert
         await Verifier.Verify(result, _verifySettings);
@@ -202,7 +201,7 @@ public class RepositorySpecificConfigurationTest
                 _repositoryExpressionEvaluator));
 
         // act
-        IEnumerable<RepositoryAction> result = sut.CreateActions(new Repository());
+        IEnumerable<RepositoryActionBase> result = sut.CreateActions(new Repository());
 
         // assert
         result.Should().BeEmpty();
@@ -228,7 +227,7 @@ public class RepositorySpecificConfigurationTest
                 _repositoryExpressionEvaluator));
 
         // act
-        IEnumerable<RepositoryAction> result = sut.CreateActions(new Repository());
+        IEnumerable<RepositoryActionBase> result = sut.CreateActions(new Repository());
 
         // assert
         await Verifier.Verify(result, _verifySettings);

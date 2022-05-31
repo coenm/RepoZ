@@ -1,7 +1,6 @@
-﻿namespace grr.Messages.Filters
+namespace Grr.Messages.Filters;
+
+public interface IMessageFilter
 {
-    public interface IMessageFilter
-    {
-        void Filter(RepositoryFilterOptions filter);
-    }
+    void Filter(RepositoryFilterOptions filter);
 }

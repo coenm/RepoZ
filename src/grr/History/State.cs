@@ -1,13 +1,12 @@
-namespace grr.History
+namespace Grr.History;
+
+using RepoZ.Ipc;
+
+public class State
 {
-    using RepoZ.Ipc;
+    public Repository[]? LastRepositories { get; set; }
 
-    public class State
-    {
-        public Repository[] LastRepositories { get; set; }
+    public bool OverwriteRepositories { get; set; }
 
-        public bool OverwriteRepositories { get; set; }
-
-        public string LastLocation { get; set; }
-    }
+    public string? LastLocation { get; set; }
 }

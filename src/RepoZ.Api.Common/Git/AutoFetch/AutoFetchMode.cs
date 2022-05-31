@@ -1,13 +1,12 @@
-namespace RepoZ.Api.Common.Git.AutoFetch
+namespace RepoZ.Api.Common.Git.AutoFetch;
+
+public enum AutoFetchMode
 {
-    public enum AutoFetchMode
-    {
-        Off = 0,
+    Off = 0,
 
-        Discretely = 1,
+    Discretely = 1,
 
-        Adequate = 2,
+    Adequate = 2,
 
-        Aggressive = 3,
-    }
+    Aggressive = 3,
 }

@@ -1,20 +1,19 @@
-namespace RepoZ.Plugin.IpcService
-{
-    using JetBrains.Annotations;
-    using RepoZ.Api;
-    using RepoZ.Ipc;
-    using SimpleInjector;
-    using SimpleInjector.Packaging;
+namespace RepoZ.Plugin.IpcService;
 
-    [UsedImplicitly]
-    public class IpcServiceModule : IPackage
+using JetBrains.Annotations;
+using RepoZ.Api;
+using RepoZ.Ipc;
+using SimpleInjector;
+using SimpleInjector.Packaging;
+
+[UsedImplicitly]
+public class IpcServiceModule : IPackage
+{
+    public void RegisterServices(Container container)
     {
-        public void RegisterServices(Container container)
-        {
-            //IRepositorySource
-            container.Register<IIpcEndpoint, DefaultIpcEndpoint>(Lifestyle.Singleton);
-            container.Register<IpcServer>(Lifestyle.Singleton);
-            container.Collection.Append<IModule, RepozIpcServerModule>(Lifestyle.Singleton);
-        }
+        //IRepositorySource
+        container.Register<IIpcEndpoint, DefaultIpcEndpoint>(Lifestyle.Singleton);
+        container.Register<IpcServer>(Lifestyle.Singleton);
+        container.Collection.Append<IModule, RepozIpcServerModule>(Lifestyle.Singleton);
     }
 }

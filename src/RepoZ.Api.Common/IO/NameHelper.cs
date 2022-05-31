@@ -1,7 +1,6 @@
 namespace RepoZ.Api.Common.IO;
 
 using System;
-using System.Runtime.CompilerServices;
 using RepoZ.Api.Common.Common;
 using RepoZ.Api.Common.IO.ExpressionEvaluator;
 using RepoZ.Api.Git;
@@ -9,17 +8,16 @@ using RepoZ.Api.Git;
 public static class NameHelper
 {
     // todo
-
-    public static string EvaluateName(in string input, in Repository repository, ITranslationService translationService, RepositoryExpressionEvaluator repositoryExpressionEvaluator)
+    public static string EvaluateName(in string? input, in Repository repository, ITranslationService translationService, RepositoryExpressionEvaluator repositoryExpressionEvaluator)
     {
         return repositoryExpressionEvaluator.EvaluateStringExpression(
             ReplaceTranslatables(
-                translationService.Translate(input),
+                translationService.Translate(input ?? string.Empty),
                 translationService),
             repository);
     }
 
-    public static string ReplaceVariables(string value, Repository repository)
+    public static string ReplaceVariables(string? value, Repository repository)
     {
         if (value is null)
         {
@@ -38,7 +36,7 @@ public static class NameHelper
                 .Replace("{Repository.RemoteUrls}", string.Join("|", repository.RemoteUrls ?? Array.Empty<string>())));
     }
 
-    private static string ReplaceTranslatables(string value, ITranslationService translationService)
+    private static string ReplaceTranslatables(string? value, ITranslationService translationService)
     {
         if (value is null)
         {

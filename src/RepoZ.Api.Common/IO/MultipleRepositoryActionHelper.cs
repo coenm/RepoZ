@@ -13,9 +13,8 @@ public static class MultipleRepositoryActionHelper
         Action<Repository> action,
         bool executionCausesSynchronizing = false)
     {
-        return new RepositoryAction()
+        return new RepositoryAction(name)
             {
-                Name = name,
                 Action = (_, _) =>
                     {
                         // copy over to an array to not get an exception

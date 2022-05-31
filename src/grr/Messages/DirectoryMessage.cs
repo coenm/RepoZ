@@ -1,98 +1,102 @@
-namespace grr.Messages
+namespace Grr.Messages;
+
+using System;
+using System.IO.Abstractions;
+using RepoZ.Ipc;
+
+[System.Diagnostics.DebuggerDisplay("{GetRemoteCommand()}")]
+public abstract class DirectoryMessage : IMessage
 {
-    using System;
-    using System.IO.Abstractions;
-    using RepoZ.Ipc;
+    private readonly bool _argumentIsExistingDirectory;
+    private protected readonly IFileSystem FileSystem;
 
-    [System.Diagnostics.DebuggerDisplay("{GetRemoteCommand()}")]
-    public abstract class DirectoryMessage : IMessage
+    protected DirectoryMessage(RepositoryFilterOptions filter, IFileSystem fileSystem)
     {
-        private readonly bool _argumentIsExistingDirectory;
-        private protected readonly IFileSystem FileSystem;
+        Filter = filter ?? throw new ArgumentNullException(nameof(filter));
+        FileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
+        _argumentIsExistingDirectory = FileSystem.Directory.Exists(Filter.RepositoryFilter);
+    }
 
-        public DirectoryMessage(RepositoryFilterOptions filter, IFileSystem fileSystem)
+    public void Execute(Repository[] repositories)
+    {
+        if (_argumentIsExistingDirectory)
         {
-            Filter = filter ?? throw new ArgumentNullException(nameof(filter));
-            FileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
-            _argumentIsExistingDirectory = FileSystem.Directory.Exists(Filter.RepositoryFilter);
+            ExecuteExistingDirectoryWithSafetyCheck(Filter.RepositoryFilter);
+        }
+        else
+        {
+            ExecuteRepositoryQuery(repositories);
+        }
+    }
+
+    private void ExecuteExistingDirectoryWithSafetyCheck(string? directory)
+    {
+        if (directory == null)
+        {
+            return;
         }
 
-        public void Execute(Repository[] repositories)
+        // use '/' for linux systems and bash command line (will work on cmd and powershell as well)
+        directory = directory.Replace(@"\", "/");
+        ExecuteExistingDirectory(directory);
+    }
+
+    protected abstract void ExecuteExistingDirectory(string directory);
+
+    protected virtual void ExecuteRepositoryQuery(Repository[] repositories)
+    {
+        if (repositories.Length == 0)
         {
-            if (_argumentIsExistingDirectory)
-            {
-                ExecuteExistingDirectoryWithSafetyCheck(Filter.RepositoryFilter);
-            }
-            else
-            {
-                ExecuteRepositoryQuery(repositories);
-            }
+            return;
         }
 
-        private void ExecuteExistingDirectoryWithSafetyCheck(string directory)
+        foreach (Repository repository in repositories)
         {
-            // use '/' for linux systems and bash command line (will work on cmd and powershell as well)
-            directory = directory.Replace(@"\", "/");
-            ExecuteExistingDirectory(directory);
-        }
+            var directory = repository.SafePath;
 
-        protected abstract void ExecuteExistingDirectory(string directory);
-
-        protected virtual void ExecuteRepositoryQuery(Repository[] repositories)
-        {
-            if (repositories == null || repositories.Length <= 0)
+            if (string.IsNullOrWhiteSpace(directory))
             {
+                System.Console.WriteLine("Repository path is empty. Aborting.");
                 return;
             }
 
-            foreach (Repository repository in repositories)
+            if (FileSystem.Directory.Exists(directory))
             {
-                var directory = repository.SafePath;
-
-                if (string.IsNullOrWhiteSpace(directory))
-                {
-                    System.Console.WriteLine("Repository path is empty. Aborting.");
-                    return;
-                }
-
-                if (FileSystem.Directory.Exists(directory))
-                {
-                    ExecuteExistingDirectoryWithSafetyCheck(directory);
-                }
-                else
-                {
-                    System.Console.WriteLine("Repository path does not exist:\n" + directory);
-                }
+                ExecuteExistingDirectoryWithSafetyCheck(directory);
+            }
+            else
+            {
+                System.Console.WriteLine("Repository path does not exist:\n" + directory);
             }
         }
-
-        public virtual string GetRemoteCommand()
-        {
-            if (!HasRemoteCommand)
-            {
-                return null;
-            }
-
-            return string.IsNullOrEmpty(Filter?.RepositoryFilter)
-                ? null /* makes no sense */
-                : $"list:{RegexFilter.Get(Filter.RepositoryFilter)}";
-        }
-
-        public virtual bool HasRemoteCommand
-        {
-            get
-            {
-                if (_argumentIsExistingDirectory)
-                {
-                    return false;
-                }
-
-                return !string.IsNullOrEmpty(Filter?.RepositoryFilter);
-            }
-        }
-
-        public abstract bool ShouldWriteRepositories(Repository[] repositories);
-
-        public RepositoryFilterOptions Filter { get; }
     }
+
+    public virtual string? GetRemoteCommand()
+    {
+        if (!HasRemoteCommand)
+        {
+            return null;
+        }
+
+        return string.IsNullOrEmpty(Filter?.RepositoryFilter)
+            ? null /* makes no sense */
+            : $"list:{RegexFilter.Get(Filter.RepositoryFilter)}";
+    }
+
+    public virtual bool HasRemoteCommand
+    {
+        get
+        {
+            if (_argumentIsExistingDirectory)
+            {
+                return false;
+            }
+
+            return !string.IsNullOrEmpty(Filter?.RepositoryFilter);
+        }
+    }
+
+    public abstract bool ShouldWriteRepositories(Repository[] repositories);
+
+    public RepositoryFilterOptions Filter { get; }
 }

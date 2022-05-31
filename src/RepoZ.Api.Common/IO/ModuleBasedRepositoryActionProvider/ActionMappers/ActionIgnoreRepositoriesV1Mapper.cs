@@ -14,18 +14,15 @@ public class ActionIgnoreRepositoriesV1Mapper : IActionToRepositoryActionMapper
     private readonly RepositoryExpressionEvaluator _expressionEvaluator;
     private readonly ITranslationService _translationService;
     private readonly IRepositoryMonitor _repositoryMonitor;
-    private readonly IErrorHandler _errorHandler;
 
     public ActionIgnoreRepositoriesV1Mapper(
         RepositoryExpressionEvaluator expressionEvaluator,
         ITranslationService translationService,
-        IRepositoryMonitor repositoryMonitor,
-        IErrorHandler errorHandler)
+        IRepositoryMonitor repositoryMonitor)
     {
         _expressionEvaluator = expressionEvaluator ?? throw new ArgumentNullException(nameof(expressionEvaluator));
         _translationService = translationService ?? throw new ArgumentNullException(nameof(translationService));
         _repositoryMonitor = repositoryMonitor ?? throw new ArgumentNullException(nameof(repositoryMonitor));
-        _errorHandler = errorHandler ?? throw new ArgumentNullException(nameof(errorHandler));
     }
 
     bool IActionToRepositoryActionMapper.CanMap(Data.RepositoryAction action)
@@ -33,12 +30,12 @@ public class ActionIgnoreRepositoriesV1Mapper : IActionToRepositoryActionMapper
         return action is RepositoryActionIgnoreRepositoriesV1;
     }
 
-    bool IActionToRepositoryActionMapper.CanHandleMultipeRepositories()
+    bool IActionToRepositoryActionMapper.CanHandleMultipleRepositories()
     {
         return true;
     }
 
-    IEnumerable<RepositoryAction> IActionToRepositoryActionMapper.Map(Data.RepositoryAction action, IEnumerable<Repository> repositories, ActionMapperComposition actionMapperComposition)
+    IEnumerable<RepositoryActionBase> IActionToRepositoryActionMapper.Map(Data.RepositoryAction action, IEnumerable<Repository> repositories, ActionMapperComposition actionMapperComposition)
     {
         Repository[] repos = repositories as Repository[] ?? repositories.ToArray();
         if (repos.Any(r => !_expressionEvaluator.EvaluateBooleanExpression(action.Active, r)))

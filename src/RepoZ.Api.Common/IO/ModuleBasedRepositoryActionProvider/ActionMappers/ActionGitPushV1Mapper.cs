@@ -14,14 +14,12 @@ public class ActionGitPushV1Mapper : IActionToRepositoryActionMapper
     private readonly RepositoryExpressionEvaluator _expressionEvaluator;
     private readonly ITranslationService _translationService;
     private readonly IRepositoryWriter _repositoryWriter;
-    private readonly IErrorHandler _errorHandler;
 
-    public ActionGitPushV1Mapper(RepositoryExpressionEvaluator expressionEvaluator, ITranslationService translationService, IRepositoryWriter repositoryWriter, IErrorHandler errorHandler)
+    public ActionGitPushV1Mapper(RepositoryExpressionEvaluator expressionEvaluator, ITranslationService translationService, IRepositoryWriter repositoryWriter)
     {
         _expressionEvaluator = expressionEvaluator ?? throw new ArgumentNullException(nameof(expressionEvaluator));
         _translationService = translationService ?? throw new ArgumentNullException(nameof(translationService));
         _repositoryWriter = repositoryWriter ?? throw new ArgumentNullException(nameof(repositoryWriter));
-        _errorHandler = errorHandler ?? throw new ArgumentNullException(nameof(errorHandler));
     }
 
     bool IActionToRepositoryActionMapper.CanMap(RepositoryAction action)
@@ -29,12 +27,12 @@ public class ActionGitPushV1Mapper : IActionToRepositoryActionMapper
         return action is RepositoryActionGitPushV1;
     }
 
-    bool IActionToRepositoryActionMapper.CanHandleMultipeRepositories()
+    bool IActionToRepositoryActionMapper.CanHandleMultipleRepositories()
     {
         return true;
     }
 
-    IEnumerable<Api.Git.RepositoryAction> IActionToRepositoryActionMapper.Map(RepositoryAction action, IEnumerable<Repository> repositories, ActionMapperComposition actionMapperComposition)
+    IEnumerable<RepositoryActionBase> IActionToRepositoryActionMapper.Map(RepositoryAction action, IEnumerable<Repository> repositories, ActionMapperComposition actionMapperComposition)
     {
         Repository[] repos = repositories as Repository[] ?? repositories.ToArray();
         if (repos.Any(r => !_expressionEvaluator.EvaluateBooleanExpression(action.Active, r)))

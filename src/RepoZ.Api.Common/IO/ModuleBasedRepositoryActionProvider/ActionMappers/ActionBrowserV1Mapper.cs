@@ -30,28 +30,37 @@ public class ActionBrowserV1Mapper : IActionToRepositoryActionMapper
         return action is RepositoryActionBrowserV1;
     }
 
-    bool IActionToRepositoryActionMapper.CanHandleMultipeRepositories()
+    bool IActionToRepositoryActionMapper.CanHandleMultipleRepositories()
     {
         return false;
     }
 
-    IEnumerable<RepositoryAction> IActionToRepositoryActionMapper.Map(Data.RepositoryAction action, IEnumerable<Repository> repository, ActionMapperComposition actionMapperComposition)
+    IEnumerable<RepositoryActionBase> IActionToRepositoryActionMapper.Map(Data.RepositoryAction action, IEnumerable<Repository> repository, ActionMapperComposition actionMapperComposition)
     {
         return Map(action as RepositoryActionBrowserV1, repository.First());
     }
 
-    public IEnumerable<Api.Git.RepositoryAction> Map(RepositoryActionBrowserV1 action, Repository repository)
+    private IEnumerable<Api.Git.RepositoryAction> Map(RepositoryActionBrowserV1? action, Repository repository)
     {
+        if (action == null)
+        {
+            yield break;
+        }
+
         if (!_expressionEvaluator.EvaluateBooleanExpression(action.Active, repository))
+        {
+            yield break;
+        }
+
+        if (action.Url is null)
         {
             yield break;
         }
 
         var name = NameHelper.EvaluateName(action.Name, repository, _translationService, _expressionEvaluator);
         var url = _expressionEvaluator.EvaluateStringExpression(action.Url, repository);
-        yield return new RepositoryAction()
+        yield return new RepositoryAction(name)
             {
-                Name = name,
                 Action = (_, _) => ProcessHelper.StartProcess(url, string.Empty, _errorHandler),
             };
     }

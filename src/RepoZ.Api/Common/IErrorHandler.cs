@@ -1,7 +1,6 @@
-namespace RepoZ.Api.Common
+namespace RepoZ.Api.Common;
+
+public interface IErrorHandler
 {
-    public interface IErrorHandler
-    {
-        void Handle(string error);
-    }
+    void Handle(string error);
 }

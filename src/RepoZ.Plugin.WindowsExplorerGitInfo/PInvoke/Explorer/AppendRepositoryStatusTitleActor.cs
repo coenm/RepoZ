@@ -1,35 +1,34 @@
-namespace RepoZ.Plugin.WindowsExplorerGitInfo.PInvoke.Explorer
+namespace RepoZ.Plugin.WindowsExplorerGitInfo.PInvoke.Explorer;
+
+using System;
+using RepoZ.Api.Git;
+
+internal class AppendRepositoryStatusTitleActor : ExplorerWindowActor
 {
-    using System;
-    using RepoZ.Api.Git;
+    private readonly IRepositoryInformationAggregator _repositoryInfoAggregator;
 
-    internal class AppendRepositoryStatusTitleActor : ExplorerWindowActor
+    public AppendRepositoryStatusTitleActor(IRepositoryInformationAggregator repositoryInfoAggregator)
     {
-        private readonly IRepositoryInformationAggregator _repositoryInfoAggregator;
+        _repositoryInfoAggregator = repositoryInfoAggregator;
+    }
 
-        public AppendRepositoryStatusTitleActor(IRepositoryInformationAggregator repositoryInfoAggregator)
+    protected override void Act(IntPtr hwnd, string? explorerLocationUrl)
+    {
+        if (string.IsNullOrEmpty(explorerLocationUrl))
         {
-            _repositoryInfoAggregator = repositoryInfoAggregator;
+            return;
         }
 
-        protected override void Act(IntPtr hwnd, string explorerLocationUrl)
+        var path = new Uri(explorerLocationUrl).LocalPath;
+
+        var status = _repositoryInfoAggregator.GetStatusByPath(path);
+
+        if (string.IsNullOrEmpty(status))
         {
-            if (string.IsNullOrEmpty(explorerLocationUrl))
-            {
-                return;
-            }
-
-            var path = new Uri(explorerLocationUrl).LocalPath;
-
-            var status = _repositoryInfoAggregator.GetStatusByPath(path);
-
-            if (string.IsNullOrEmpty(status))
-            {
-                return;
-            }
-
-            const string SEPARATOR = "  [";
-            WindowHelper.AppendWindowText(hwnd, SEPARATOR, status + "]");
+            return;
         }
+
+        const string SEPARATOR = "  [";
+        WindowHelper.AppendWindowText(hwnd, SEPARATOR, status + "]");
     }
 }

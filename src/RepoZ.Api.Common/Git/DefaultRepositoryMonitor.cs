@@ -1,289 +1,284 @@
-namespace RepoZ.Api.Common.Git
+namespace RepoZ.Api.Common.Git;
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using RepoZ.Api.Git;
+using RepoZ.Api.IO;
+using System.Threading;
+using System.IO.Abstractions;
+using RepoZ.Api.Common.Git.AutoFetch;
+
+public class DefaultRepositoryMonitor : IRepositoryMonitor
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using RepoZ.Api.Git;
-    using RepoZ.Api.IO;
-    using System.Threading;
-    using System.IO.Abstractions;
-    using RepoZ.Api.Common.Git.AutoFetch;
+    public event EventHandler<Repository>? OnChangeDetected;
+    public event EventHandler<string>? OnDeletionDetected;
+    public event EventHandler<bool>? OnScanStateChanged;
 
-    public class DefaultRepositoryMonitor : IRepositoryMonitor
+    private List<IRepositoryDetector>? _detectors;
+    private readonly Timer _storeFlushTimer;
+    private readonly IRepositoryDetectorFactory _repositoryDetectorFactory;
+    private readonly IRepositoryObserverFactory _repositoryObserverFactory;
+    private readonly IGitRepositoryFinderFactory _gitRepositoryFinderFactory;
+    private readonly IRepositoryReader _repositoryReader;
+    private readonly IPathProvider _pathProvider;
+    private readonly IRepositoryStore _repositoryStore;
+    private readonly IRepositoryInformationAggregator _repositoryInformationAggregator;
+    private readonly IRepositoryIgnoreStore _repositoryIgnoreStore;
+    private readonly Dictionary<string, IRepositoryObserver> _repositoryObservers;
+    private readonly IFileSystem _fileSystem;
+    private readonly IAutoFetchHandler _autoFetchHandler;
+
+    public DefaultRepositoryMonitor(
+        IPathProvider pathProvider,
+        IRepositoryReader repositoryReader,
+        IRepositoryDetectorFactory repositoryDetectorFactory,
+        IRepositoryObserverFactory repositoryObserverFactory,
+        IGitRepositoryFinderFactory gitRepositoryFinderFactory,
+        IRepositoryStore repositoryStore,
+        IRepositoryInformationAggregator repositoryInformationAggregator,
+        IAutoFetchHandler autoFetchHandler,
+        IRepositoryIgnoreStore repositoryIgnoreStore,
+        IFileSystem fileSystem)
     {
-        public event EventHandler<Repository> OnChangeDetected;
-        public event EventHandler<string> OnDeletionDetected;
-        public event EventHandler<bool> OnScanStateChanged;
+        _repositoryReader = repositoryReader ?? throw new ArgumentNullException(nameof(repositoryReader));
+        _repositoryDetectorFactory = repositoryDetectorFactory ?? throw new ArgumentNullException(nameof(repositoryDetectorFactory));
+        _repositoryObserverFactory = repositoryObserverFactory ?? throw new ArgumentNullException(nameof(repositoryObserverFactory));
+        _gitRepositoryFinderFactory = gitRepositoryFinderFactory ?? throw new ArgumentNullException(nameof(gitRepositoryFinderFactory));
+        _pathProvider = pathProvider ?? throw new ArgumentNullException(nameof(pathProvider));
+        _repositoryStore = repositoryStore ?? throw new ArgumentNullException(nameof(repositoryStore));
+        _repositoryInformationAggregator = repositoryInformationAggregator ?? throw new ArgumentNullException(nameof(repositoryInformationAggregator));
+        _repositoryObservers = new Dictionary<string, IRepositoryObserver>();
+        _repositoryIgnoreStore = repositoryIgnoreStore;
+        _fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
 
-        private List<IRepositoryDetector> _detectors = null;
-        private readonly Timer _storeFlushTimer = null;
-        private readonly IRepositoryDetectorFactory _repositoryDetectorFactory;
-        private readonly IRepositoryObserverFactory _repositoryObserverFactory;
-        private readonly IGitRepositoryFinderFactory _gitRepositoryFinderFactory;
-        private readonly IRepositoryReader _repositoryReader;
-        private readonly IPathProvider _pathProvider;
-        private readonly IRepositoryStore _repositoryStore;
-        private readonly IRepositoryInformationAggregator _repositoryInformationAggregator;
-        private readonly IRepositoryIgnoreStore _repositoryIgnoreStore;
-        private readonly Dictionary<string, IRepositoryObserver> _repositoryObservers;
-        private readonly IFileSystem _fileSystem;
+        _storeFlushTimer = new Timer(RepositoryStoreFlushTimerCallback, null, Timeout.Infinite, Timeout.Infinite);
 
-        public DefaultRepositoryMonitor(
-            IPathProvider pathProvider,
-            IRepositoryReader repositoryReader,
-            IRepositoryDetectorFactory repositoryDetectorFactory,
-            IRepositoryObserverFactory repositoryObserverFactory,
-            IGitRepositoryFinderFactory gitRepositoryFinderFactory,
-            IRepositoryStore repositoryStore,
-            IRepositoryInformationAggregator repositoryInformationAggregator,
-            IAutoFetchHandler autoFetchHandler,
-            IRepositoryIgnoreStore repositoryIgnoreStore,
-            IFileSystem fileSystem)
-        {
-            _repositoryReader = repositoryReader ?? throw new ArgumentNullException(nameof(repositoryReader));
-            _repositoryDetectorFactory = repositoryDetectorFactory ?? throw new ArgumentNullException(nameof(repositoryDetectorFactory));
-            _repositoryObserverFactory = repositoryObserverFactory ?? throw new ArgumentNullException(nameof(repositoryObserverFactory));
-            _gitRepositoryFinderFactory = gitRepositoryFinderFactory ?? throw new ArgumentNullException(nameof(gitRepositoryFinderFactory));
-            _pathProvider = pathProvider ?? throw new ArgumentNullException(nameof(pathProvider));
-            _repositoryStore = repositoryStore ?? throw new ArgumentNullException(nameof(repositoryStore));
-            _repositoryInformationAggregator = repositoryInformationAggregator ?? throw new ArgumentNullException(nameof(repositoryInformationAggregator));
-            _repositoryObservers = new Dictionary<string, IRepositoryObserver>();
-            _repositoryIgnoreStore = repositoryIgnoreStore;
-            _fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
+        _autoFetchHandler = autoFetchHandler ?? throw new ArgumentNullException(nameof(autoFetchHandler));
+    }
 
-            _storeFlushTimer = new Timer(RepositoryStoreFlushTimerCallback, null, Timeout.Infinite, Timeout.Infinite);
+    public Task ScanForLocalRepositoriesAsync()
+    {
+        Scanning = true;
+        OnScanStateChanged?.Invoke(this, Scanning);
 
-            AutoFetchHandler = autoFetchHandler ?? throw new ArgumentNullException(nameof(autoFetchHandler));
-        }
+        var scannedPaths = 0;
 
-        public Task ScanForLocalRepositoriesAsync()
-        {
-            Scanning = true;
-            OnScanStateChanged?.Invoke(this, Scanning);
+        var paths = _pathProvider.GetPaths();
 
-            var scannedPaths = 0;
-
-            var paths = _pathProvider.GetPaths();
-
-            IEnumerable<Task> tasks = paths.Select(path =>
-                {
-                    return Task.Run(() => _gitRepositoryFinderFactory.Create().Find(path, OnFoundNewRepository))
-                               .ContinueWith(_ =>
+        IEnumerable<Task> tasks = paths.Select(path => Task.Run(() => _gitRepositoryFinderFactory.Create().Find(path, OnFoundNewRepository))
+                           .ContinueWith(_ =>
+                               {
+                                   if (Interlocked.Increment(ref scannedPaths) != paths.Length)
                                    {
-                                       if (Interlocked.Increment(ref scannedPaths) != paths.Length)
-                                       {
-                                           return;
-                                       }
+                                       return;
+                                   }
 
-                                       Scanning = false;
-                                       OnScanStateChanged?.Invoke(this, Scanning);
-                                   });
-                });
+                                   Scanning = false;
+                                   OnScanStateChanged?.Invoke(this, Scanning);
+                               }));
 
-            return Task.WhenAll(tasks);
-        }
+        return Task.WhenAll(tasks);
+    }
 
-        private void ScanRepositoriesFromStoreAsync()
-        {
-            Task.Run(() =>
+    private void ScanRepositoriesFromStoreAsync()
+    {
+        Task.Run(() =>
+            {
+                foreach (var head in _repositoryStore.Get())
                 {
-                    foreach (var head in _repositoryStore.Get())
-                    {
-                        OnCheckKnownRepository(head, KnownRepositoryNotifications.WhenFound);
-                    }
-                });
-        }
+                    OnCheckKnownRepository(head, KnownRepositoryNotifications.WhenFound);
+                }
+            });
+    }
 
-        private void RepositoryStoreFlushTimerCallback(object state)
-        {
-            var heads = _repositoryInformationAggregator.Repositories.Select(v => v.Path).ToArray();
-            _repositoryStore.Set(heads);
-        }
+    private void RepositoryStoreFlushTimerCallback(object? state)
+    {
+        var heads = _repositoryInformationAggregator.Repositories.Select(v => v.Path).ToArray();
+        _repositoryStore.Set(heads);
+    }
 
-        private void OnFoundNewRepository(string file)
+    private void OnFoundNewRepository(string file)
+    {
+        Repository? repo = _repositoryReader.ReadRepository(file);
+        if (repo?.WasFound ?? false)
         {
-            Repository repo = _repositoryReader.ReadRepository(file);
-            if (repo.WasFound)
+            OnRepositoryChangeDetected(repo);
+        }
+    }
+
+    private void OnCheckKnownRepository(string file, KnownRepositoryNotifications notification)
+    {
+        Repository? repo = _repositoryReader.ReadRepository(file);
+        if (repo?.WasFound ?? false)
+        {
+            if (notification.HasFlag(KnownRepositoryNotifications.WhenFound))
             {
                 OnRepositoryChangeDetected(repo);
             }
         }
-
-        private void OnCheckKnownRepository(string file, KnownRepositoryNotifications notification)
+        else
         {
-            Repository repo = _repositoryReader.ReadRepository(file);
-            if (repo.WasFound)
+            if (notification.HasFlag(KnownRepositoryNotifications.WhenNotFound))
             {
-                if (notification.HasFlag(KnownRepositoryNotifications.WhenFound))
-                {
-                    OnRepositoryChangeDetected(repo);
-                }
-            }
-            else
-            {
-                if (notification.HasFlag(KnownRepositoryNotifications.WhenNotFound))
-                {
-                    OnRepositoryDeletionDetected(file);
-                }
+                OnRepositoryDeletionDetected(file);
             }
         }
+    }
 
-        private void ObserveRepositoryChanges()
+    private void ObserveRepositoryChanges()
+    {
+        _detectors = new List<IRepositoryDetector>();
+
+        foreach (var path in _pathProvider.GetPaths())
         {
-            _detectors = new List<IRepositoryDetector>();
-
-            foreach (var path in _pathProvider.GetPaths())
+            if (!_fileSystem.Directory.Exists(path))
             {
-                if (!_fileSystem.Directory.Exists(path))
-                {
-                    continue;
-                }
-
-                IRepositoryDetector detector = _repositoryDetectorFactory.Create();
-                _detectors.Add(detector);
-
-                detector.OnAddOrChange = OnRepositoryChangeDetected;
-                detector.OnDelete = OnRepositoryDeletionDetected;
-                detector.Setup(path, DelayGitRepositoryStatusAfterCreationMilliseconds);
-            }
-        }
-
-        public void Observe()
-        {
-            if (_detectors == null)
-            {
-                // see https://answers.unity.com/questions/959106/how-to-monitor-file-system-in-mac.html
-                Environment.SetEnvironmentVariable("MONO_MANAGED_WATCHER", "enabled");
-
-                ScanRepositoriesFromStoreAsync();
-
-                ObserveRepositoryChanges();
+                continue;
             }
 
-            _detectors.ForEach(w => w.Start());
+            IRepositoryDetector detector = _repositoryDetectorFactory.Create();
+            _detectors.Add(detector);
 
-            AutoFetchHandler.Active = true;
+            detector.OnAddOrChange = OnRepositoryChangeDetected;
+            detector.OnDelete = OnRepositoryDeletionDetected;
+            detector.Setup(path, DelayGitRepositoryStatusAfterCreationMilliseconds);
         }
+    }
 
-        public void Reset()
+    public void Observe()
+    {
+        if (_detectors == null)
         {
-            Stop();
+            // see https://answers.unity.com/questions/959106/how-to-monitor-file-system-in-mac.html
+            Environment.SetEnvironmentVariable("MONO_MANAGED_WATCHER", "enabled");
 
-            foreach (var observer in _repositoryObservers.Values)
-            {
-                observer.Stop();
-                observer.Dispose();
-            }
+            ScanRepositoriesFromStoreAsync();
 
-            _repositoryObservers.Clear();
-
-            _repositoryInformationAggregator.Reset();
-            RepositoryStoreFlushTimerCallback(null);
-
-            Observe();
+            ObserveRepositoryChanges();
         }
 
-        public void Stop()
+        _detectors?.ForEach(w => w.Start());
+
+        _autoFetchHandler.Active = true;
+    }
+
+    public void Reset()
+    {
+        Stop();
+
+        foreach (IRepositoryObserver observer in _repositoryObservers.Values)
         {
-            AutoFetchHandler.Active = false;
-            _detectors?.ForEach(w => w.Stop());
+            observer.Stop();
+            observer.Dispose();
         }
 
-        public void IgnoreByPath(string path)
+        _repositoryObservers.Clear();
+
+        _repositoryInformationAggregator.Reset();
+        RepositoryStoreFlushTimerCallback(null);
+
+        Observe();
+    }
+
+    public void Stop()
+    {
+        _autoFetchHandler.Active = false;
+        _detectors?.ForEach(w => w.Stop());
+    }
+
+    public void IgnoreByPath(string path)
+    {
+        _repositoryIgnoreStore.IgnoreByPath(path);
+        _repositoryInformationAggregator.RemoveByPath(path);
+    }
+
+    private void CreateRepositoryObserver(Repository repo, string path)
+    {
+        if (!_repositoryObservers.ContainsKey(path))
         {
-            _repositoryIgnoreStore.IgnoreByPath(path);
-            _repositoryInformationAggregator.RemoveByPath(path);
+            IRepositoryObserver observer = _repositoryObserverFactory.Create();
+            observer.Setup(repo, DelayGitStatusAfterFileOperationMilliseconds);
+            _repositoryObservers.Add(path, observer);
+
+            observer.OnChange += OnRepositoryObserverChange;
         }
 
-        private void CreateRepositoryObserver(Repository repo, string path)
+        _repositoryObservers[path].Start();
+    }
+
+    private void OnRepositoryChangeDetected(Repository repo)
+    {
+        var path = repo.Path;
+
+        if (string.IsNullOrEmpty(path))
         {
-            if (!_repositoryObservers.ContainsKey(path))
-            {
-                IRepositoryObserver observer = _repositoryObserverFactory.Create();
-                observer.Setup(repo, DelayGitStatusAfterFileOperationMilliseconds);
-                _repositoryObservers.Add(path, observer);
-
-                observer.OnChange += OnRepositoryObserverChange;
-            }
-
-            _repositoryObservers[path].Start();
+            return;
         }
 
-        private void OnRepositoryChangeDetected(Repository repo)
+        if (_repositoryIgnoreStore.IsIgnored(repo.Path))
         {
-            string path = repo?.Path;
-
-            if (string.IsNullOrEmpty(path))
-            {
-                return;
-            }
-
-            if (_repositoryIgnoreStore.IsIgnored(repo.Path))
-            {
-                return;
-            }
-
-            if (!_repositoryInformationAggregator.HasRepository(path))
-            {
-                CreateRepositoryObserver(repo, path);
-
-                // use that delay to prevent a lot of sequential writes 
-                // when a lot repositories get found in a row
-                _storeFlushTimer.Change(5000, Timeout.Infinite);
-            }
-
-            OnChangeDetected?.Invoke(this, repo);
-
-            _repositoryInformationAggregator.Add(repo);
+            return;
         }
 
-        private void OnRepositoryObserverChange(Repository repository)
+        if (!_repositoryInformationAggregator.HasRepository(path))
         {
-            OnCheckKnownRepository(repository.Path, KnownRepositoryNotifications.WhenFound | KnownRepositoryNotifications.WhenNotFound);
+            CreateRepositoryObserver(repo, path);
+
+            // use that delay to prevent a lot of sequential writes 
+            // when a lot repositories get found in a row
+            _storeFlushTimer.Change(5000, Timeout.Infinite);
         }
 
-        private void DestroyRepositoryObserver(string path)
+        OnChangeDetected?.Invoke(this, repo);
+
+        _repositoryInformationAggregator.Add(repo);
+    }
+
+    private void OnRepositoryObserverChange(Repository repository)
+    {
+        OnCheckKnownRepository(repository.Path, KnownRepositoryNotifications.WhenFound | KnownRepositoryNotifications.WhenNotFound);
+    }
+
+    private void DestroyRepositoryObserver(string path)
+    {
+        if (_repositoryObservers.TryGetValue(path, out IRepositoryObserver observer))
         {
-            if (_repositoryObservers.TryGetValue(path, out IRepositoryObserver observer))
-            {
-                observer.Stop();
-                _repositoryObservers.Remove(path);
-            }
+            observer.Stop();
+            _repositoryObservers.Remove(path);
         }
+    }
 
-        private void OnRepositoryDeletionDetected(string repoPath)
+    private void OnRepositoryDeletionDetected(string repoPath)
+    {
+        if (string.IsNullOrEmpty(repoPath))
         {
-            if (string.IsNullOrEmpty(repoPath))
-            {
-                return;
-            }
-
-            if (_repositoryIgnoreStore.IsIgnored(repoPath))
-            {
-                return;
-            }
-
-            DestroyRepositoryObserver(repoPath);
-
-            OnDeletionDetected?.Invoke(this, repoPath);
-
-            _repositoryInformationAggregator.RemoveByPath(repoPath);
+            return;
         }
 
-        public bool Scanning { get; set; } = false;
-
-        public int DelayGitRepositoryStatusAfterCreationMilliseconds { get; set; } = 5000;
-
-        public int DelayGitStatusAfterFileOperationMilliseconds { get; set; } = 500;
-
-        public IAutoFetchHandler AutoFetchHandler { get; }
-
-        [Flags]
-        private enum KnownRepositoryNotifications
+        if (_repositoryIgnoreStore.IsIgnored(repoPath))
         {
-            WhenFound = 1,
-            WhenNotFound = 2,
+            return;
         }
+
+        DestroyRepositoryObserver(repoPath);
+
+        OnDeletionDetected?.Invoke(this, repoPath);
+
+        _repositoryInformationAggregator.RemoveByPath(repoPath);
+    }
+
+    public bool Scanning { get; private set; } = false;
+
+    public int DelayGitRepositoryStatusAfterCreationMilliseconds { get; set; } = 5000;
+
+    public int DelayGitStatusAfterFileOperationMilliseconds { get; set; } = 500;
+
+    [Flags]
+    private enum KnownRepositoryNotifications
+    {
+        WhenFound = 1,
+        WhenNotFound = 2,
     }
 }

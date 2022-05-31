@@ -12,12 +12,12 @@ public class ActionCommandV1Deserializer : IActionDeserializer
         return "command@1".Equals(type, StringComparison.CurrentCultureIgnoreCase);
     }
 
-    RepositoryAction IActionDeserializer.Deserialize(JToken jToken, ActionDeserializerComposition actionDeserializer)
+    RepositoryAction? IActionDeserializer.Deserialize(JToken jToken, ActionDeserializerComposition actionDeserializer)
     {
         return Deserialize(jToken);
     }
 
-    public RepositoryActionCommandV1 Deserialize(JToken jToken)
+    private static RepositoryActionCommandV1? Deserialize(JToken jToken)
     {
         return jToken.ToObject<RepositoryActionCommandV1>();
     }

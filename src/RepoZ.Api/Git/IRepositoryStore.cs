@@ -1,11 +1,10 @@
-namespace RepoZ.Api.Git
+namespace RepoZ.Api.Git;
+
+using System.Collections.Generic;
+
+public interface IRepositoryStore
 {
-    using System.Collections.Generic;
+    IEnumerable<string> Get();
 
-    public interface IRepositoryStore
-    {
-        IEnumerable<string> Get();
-
-        void Set(IEnumerable<string> paths);
-    }
+    void Set(IEnumerable<string> paths);
 }

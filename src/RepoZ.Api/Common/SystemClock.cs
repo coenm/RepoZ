@@ -1,9 +1,8 @@
-namespace RepoZ.Api.Common
-{
-    using System;
+namespace RepoZ.Api.Common;
 
-    public class SystemClock : IClock
-    {
-        public DateTime Now => DateTime.Now;
-    }
+using System;
+
+public class SystemClock : IClock
+{
+    public DateTime Now => DateTime.Now;
 }

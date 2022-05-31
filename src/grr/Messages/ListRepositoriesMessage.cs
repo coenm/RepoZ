@@ -1,37 +1,38 @@
-namespace grr.Messages
+namespace Grr.Messages;
+
+using RepoZ.Ipc;
+
+[System.Diagnostics.DebuggerDisplay("{GetRemoteCommand()}")]
+public class ListRepositoriesMessage : IMessage
 {
-    using RepoZ.Ipc;
+    private readonly string _repositoryFilter;
 
-    [System.Diagnostics.DebuggerDisplay("{GetRemoteCommand()}")]
-    public class ListRepositoriesMessage : IMessage
+    public ListRepositoriesMessage()
     {
-        private readonly string _repositoryFilter;
+        _repositoryFilter = string.Empty;
+    }
 
-        public ListRepositoriesMessage()
-            : this(null) { }
+    public ListRepositoriesMessage(RepositoryFilterOptions filter)
+    {
+        _repositoryFilter = filter?.RepositoryFilter ?? string.Empty;
+    }
 
-        public ListRepositoriesMessage(RepositoryFilterOptions filter)
-        {
-            _repositoryFilter = filter?.RepositoryFilter ?? "";
-        }
+    public void Execute(Repository[] repositories)
+    {
+        // nothing to do
+    }
 
-        public void Execute(Repository[] repositories)
-        {
-            // nothing to do
-        }
+    public string GetRemoteCommand()
+    {
+        return string.IsNullOrEmpty(_repositoryFilter)
+            ? "list:.*" /* show all with RegEx pattern ".*" */
+            : $"list:{RegexFilter.Get(_repositoryFilter)}";
+    }
 
-        public string GetRemoteCommand()
-        {
-            return string.IsNullOrEmpty(_repositoryFilter)
-                ? "list:.*" /* show all with RegEx pattern ".*" */
-                : $"list:{RegexFilter.Get(_repositoryFilter)}";
-        }
+    public bool HasRemoteCommand => true;
 
-        public bool HasRemoteCommand => true;
-
-        public bool ShouldWriteRepositories(Repository[] repositories)
-        {
-            return true;
-        }
+    public bool ShouldWriteRepositories(Repository[] repositories)
+    {
+        return true;
     }
 }

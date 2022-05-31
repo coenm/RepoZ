@@ -5,7 +5,7 @@ $packageArgs = @{
   packageName   = $env:ChocolateyPackageName
   unzipLocation = $toolsDir
   fileType      = 'EXE'
-  file			= Join-Path $toolsDir 'RepoZ {PRODUCT_VERSION} Setup.exe'
+  file			= Join-Path $toolsDir 'RepoZ 5.5 Setup.exe'
 
   softwareName  = 'RepoZ*'
 

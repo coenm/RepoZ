@@ -1,14 +1,13 @@
-namespace RepoZ.App.Win
-{
-    using System;
-    using RepoZ.Api.Common;
-    using System.Windows;
+namespace RepoZ.App.Win;
 
-    internal class WpfThreadDispatcher : IThreadDispatcher
+using System;
+using RepoZ.Api.Common;
+using System.Windows;
+
+internal class WpfThreadDispatcher : IThreadDispatcher
+{
+    public void Invoke(Action act)
     {
-        public void Invoke(Action act)
-        {
-            Application.Current.Dispatcher.Invoke(act);
-        }
+        Application.Current.Dispatcher.Invoke(act);
     }
 }

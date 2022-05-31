@@ -1,12 +1,11 @@
-namespace RepoZ.Api.Common.Git
-{
-    using RepoZ.Api.Git;
+namespace RepoZ.Api.Common.Git;
 
-    public class DefaultRepositoryObserverFactory : IRepositoryObserverFactory
+using RepoZ.Api.Git;
+
+public class DefaultRepositoryObserverFactory : IRepositoryObserverFactory
+{
+    public IRepositoryObserver Create()
     {
-        public IRepositoryObserver Create()
-        {
-            return new DefaultRepositoryObserver();
-        }
+        return new DefaultRepositoryObserver();
     }
 }

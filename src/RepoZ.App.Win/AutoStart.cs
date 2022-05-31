@@ -1,48 +1,47 @@
-namespace RepoZ.App.Win
+namespace RepoZ.App.Win;
+
+using System;
+using System.Reflection;
+using Microsoft.Win32;
+
+public static class AutoStart
 {
-    using System;
-    using System.Reflection;
-    using Microsoft.Win32;
+    private const string REG_KEY = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Run";
 
-    public static class AutoStart
+    public static void SetStartup(string appName, bool startup)
     {
-        private const string REG_KEY = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Run";
+        RegistryKey? key = Registry.CurrentUser.OpenSubKey(REG_KEY, true);
 
-        public static void SetStartup(string appName, bool startup)
+        if (startup)
         {
-            var key = Registry.CurrentUser.OpenSubKey(REG_KEY, true);
-
-            if (startup)
-            {
-                key.SetValue(appName, GetAppPath());
-            }
-            else
-            {
-                key.DeleteValue(appName, false);
-            }
+            key?.SetValue(appName, GetAppPath());
         }
-
-        public static bool IsStartup(string appName)
+        else
         {
-            var key = Registry.CurrentUser.OpenSubKey(REG_KEY);
-            return IsStartup(key, appName);
+            key?.DeleteValue(appName, false);
         }
+    }
 
-        public static bool IsStartup(RegistryKey key, string appName)
-        {
-            return GetValueAsString(key, appName)
-                .Equals(GetAppPath(), StringComparison.OrdinalIgnoreCase);
-        }
+    public static bool IsStartup(string appName)
+    {
+        RegistryKey? key = Registry.CurrentUser.OpenSubKey(REG_KEY);
+        return IsStartup(key, appName);
+    }
 
-        private static string GetValueAsString(RegistryKey key, string appName)
-        {
-            var value = key.GetValue(appName);
-            return value?.ToString() ?? string.Empty;
-        }
+    private static bool IsStartup(RegistryKey? key, string appName)
+    {
+        return GetValueAsString(key, appName)
+            .Equals(GetAppPath(), StringComparison.OrdinalIgnoreCase);
+    }
 
-        private static string GetAppPath()
-        {
-            return $"\"{Assembly.GetEntryAssembly().Location}\"";
-        }
+    private static string GetValueAsString(RegistryKey? key, string appName)
+    {
+        var value = key?.GetValue(appName);
+        return value?.ToString() ?? string.Empty;
+    }
+
+    private static string GetAppPath()
+    {
+        return $"\"{Assembly.GetEntryAssembly()!.Location}\"";
     }
 }

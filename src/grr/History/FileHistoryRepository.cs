@@ -1,115 +1,113 @@
-namespace grr.History
+namespace Grr.History;
+
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.IO.Abstractions;
+using System.Linq;
+using System.Text;
+using RepoZ.Ipc;
+
+public class FileHistoryRepository : IHistoryRepository
 {
-    using RepoZ.Ipc;
-    using System;
-    using System.Collections.Generic;
-    using System.IO;
-    using System.IO.Abstractions;
-    using System.Linq;
-    using System.Text;
+    private readonly IFileSystem _fileSystem;
 
-    public class FileHistoryRepository : IHistoryRepository
+    public FileHistoryRepository(IFileSystem fileSystem)
     {
-        private readonly IFileSystem _fileSystem;
+        _fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
+    }
 
-        public FileHistoryRepository(IFileSystem fileSystem)
+    public void Save(State state)
+    {
+        // if multiple repositories were found the last time we ran grr,
+        // these were written to the last state.
+        // if the user selects one with an index like "grr cd :2", we want
+        // to keep the last repositories to enable him to choose another one
+        // with the same indexes as before.
+        // so we have to get the old repositories - load and copy them if required
+        if (!state.OverwriteRepositories)
         {
-            _fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
-        }
-
-        public void Save(State state)
-        {
-            // if multiple repositories were found the last time we ran grr,
-            // these were written to the last state.
-            // if the user selects one with an index like "grr cd :2", we want
-            // to keep the last repositories to enable him to choose another one
-            // with the same indexes as before.
-            // so we have to get the old repositories - load and copy them if required
-            if (!state.OverwriteRepositories)
+            State oldState = Load();
+            if (oldState.LastRepositories?.Length > 0)
             {
-                State oldState = Load();
-                if (oldState?.LastRepositories?.Length > 0)
-                {
-                    state.LastRepositories = oldState.LastRepositories;
-                }
-            }
-
-            var lines = new string[] { state?.LastLocation ?? "", Serialize(state?.LastRepositories ?? Array.Empty<Repository>()) };
-
-            try
-            {
-                _fileSystem.File.WriteAllLines(GetFileName(), lines, Encoding.Default);
-            }
-            catch (Exception)
-            {
-                /* safely ignore this, saving the state is optional */
+                state.LastRepositories = oldState.LastRepositories;
             }
         }
 
-        public State Load()
+        var lines = new []
+            {
+                state.LastLocation ?? string.Empty,
+                Serialize(state.LastRepositories ?? Array.Empty<Repository>()),
+            };
+
+        try
         {
-            string[] lines = null;
+            _fileSystem.File.WriteAllLines(GetFileName(), lines, Encoding.Default);
+        }
+        catch (Exception)
+        {
+            /* safely ignore this, saving the state is optional */
+        }
+    }
 
-            try
-            {
-                lines = _fileSystem.File.ReadAllLines(GetFileName(), Encoding.Default);
-            }
-            catch
-            {
-                /* safely ignore this, reading the state is optional */
-            }
+    public State Load()
+    {
+        var lines = Array.Empty<string>();
 
-            if (lines?.Length != 2)
-            {
-                return new State()
-                    {
-                        LastLocation = string.Empty,
-                        LastRepositories = Array.Empty<Repository>()
-                    };
-            }
+        try
+        {
+            lines = _fileSystem.File.ReadAllLines(GetFileName(), Encoding.Default);
+        }
+        catch
+        {
+            /* safely ignore this, reading the state is optional */
+        }
 
+        if (lines.Length != 2)
+        {
             return new State()
                 {
-                    LastLocation = lines[0],
-                    LastRepositories = Deserialize(lines[1])
+                    LastLocation = string.Empty,
+                    LastRepositories = Array.Empty<Repository>(),
                 };
         }
 
-        private static string GetFileName()
+        return new State()
+            {
+                LastLocation = lines[0],
+                LastRepositories = Deserialize(lines[1]),
+            };
+    }
+
+    private static string GetFileName()
+    {
+        return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "RepoZ", "state.grr");
+    }
+
+    private static string Serialize(IEnumerable<Repository> repositories)
+    {
+        var names = repositories
+                    .Select(r => r.Name)
+                    .ToArray();
+
+        if (!names.Any())
         {
-            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "RepoZ", "state.grr");
+            return string.Empty;
         }
 
-        private static string Serialize(IEnumerable<Repository> repositories)
+        return string.Join("|", names);
+    }
+
+    private static Repository[] Deserialize(string repositoryString)
+    {
+        if (string.IsNullOrEmpty(repositoryString))
         {
-            if (repositories == null)
-            {
-                return string.Empty;
-            }
-
-            var names = repositories
-                        .Select(r => r.Name)
-                        .ToArray();
-
-            if (!names.Any())
-            {
-                return string.Empty;
-            }
-
-            return string.Join("|", names);
+            return Array.Empty<Repository>();
         }
 
-        private static Repository[] Deserialize(string repositoryString)
-        {
-            if (string.IsNullOrEmpty(repositoryString))
-            {
-                return Array.Empty<Repository>();
-            }
-
-            return repositoryString
-                   .Split(new string[] { "|", }, StringSplitOptions.None)
-                   .Select(s => new Repository() { Name = s, })
-                   .ToArray();
-        }
+        return repositoryString
+               .Split(new [] { "|", }, StringSplitOptions.None)
+               .Select(s => new Repository(s))
+               .ToArray();
     }
 }

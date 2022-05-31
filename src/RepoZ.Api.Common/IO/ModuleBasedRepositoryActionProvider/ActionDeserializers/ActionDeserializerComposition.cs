@@ -15,22 +15,26 @@ public class ActionDeserializerComposition
         _deserializers = deserializers?.Where(x => x != null).ToArray() ?? throw new ArgumentNullException(nameof(deserializers));
     }
 
-    public RepositoryAction DeserializeSingleAction(string type, JToken jToken)
+    public RepositoryAction? DeserializeSingleAction(string type, JToken jToken)
     {
-        IActionDeserializer deserializer = _deserializers.FirstOrDefault(x => x.CanDeserialize(type));
+        IActionDeserializer? deserializer = _deserializers.FirstOrDefault(x => x.CanDeserialize(type));
 
-        RepositoryAction result = deserializer?.Deserialize(jToken, this);
+        RepositoryAction? result = deserializer?.Deserialize(jToken, this);
 
         if (result == null)
         {
             return null;
         }
 
-        JToken multiSelectEnabledToken = jToken["multi-select-enabled"];
+        JToken? multiSelectEnabledToken = jToken["multi-select-enabled"];
 
         if (multiSelectEnabledToken != null)
         {
-            result.MultiSelectEnabled = multiSelectEnabledToken.Value<string>();
+            var multiSelectEnabledValue = multiSelectEnabledToken.Value<string>();
+            if (!string.IsNullOrWhiteSpace(multiSelectEnabledValue))
+            {
+                result.MultiSelectEnabled = multiSelectEnabledValue!;
+            }
         }
 
         return result;

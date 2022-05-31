@@ -1,56 +1,55 @@
-namespace grr.Messages
+namespace Grr.Messages;
+
+using System;
+using System.Diagnostics;
+using System.IO.Abstractions;
+using System.Runtime.InteropServices;
+using RepoZ.Ipc;
+
+[DebuggerDisplay("{GetRemoteCommand()}")]
+public class ChangeToDirectoryMessage : DirectoryMessage
 {
-    using System;
-    using System.Diagnostics;
-    using System.IO.Abstractions;
-    using System.Runtime.InteropServices;
-    using RepoZ.Ipc;
+    public ChangeToDirectoryMessage(RepositoryFilterOptions filter, IFileSystem fileSystem)
+        : base(filter, fileSystem) { }
 
-    [DebuggerDisplay("{GetRemoteCommand()}")]
-    public class ChangeToDirectoryMessage : DirectoryMessage
+    protected override void ExecuteExistingDirectory(string directory)
     {
-        public ChangeToDirectoryMessage(RepositoryFilterOptions filter, IFileSystem fileSystem)
-            : base(filter, fileSystem) { }
+        var command = $"cd \"{directory}\"";
 
-        protected override void ExecuteExistingDirectory(string directory)
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
-            var command = $"cd \"{directory}\"";
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                // type the path into the console which is hosting grr.exe to change to the directory
-                TextCopy.ClipboardService.SetText(command);
-                ConsoleExtensions.WriteConsoleInput(Process.GetCurrentProcess(), command);
-            }
-            else
-            {
-                TextCopy.ClipboardService.SetText(command);
-                Console.ForegroundColor = ConsoleColor.Cyan;
-                Console.WriteLine("The command was copied to the clipboard, paste and execute it manually now.\nChanging directories is not supported on macOS yet, sorry.");
-                Console.ResetColor();
-            }
+            // type the path into the console which is hosting grr.exe to change to the directory
+            TextCopy.ClipboardService.SetText(command);
+            ConsoleExtensions.WriteConsoleInput(Process.GetCurrentProcess(), command);
         }
-
-        protected override void ExecuteRepositoryQuery(Repository[] repositories)
+        else
         {
-            if (repositories?.Length > 1)
-            {
-                // only use the first repository when multiple repositories came in
-                // cd makes no sense with multiple repositories
-                System.Console.WriteLine("");
-                System.Console.WriteLine($"Found multiple repositories, using {repositories[0].Name}.");
-                System.Console.WriteLine("You can access the others by index now, like:\n  grr cd :2");
-                base.ExecuteRepositoryQuery(new Repository[] { repositories[0] });
-            }
-            else
-            {
-                base.ExecuteRepositoryQuery(repositories);
-            }
+            TextCopy.ClipboardService.SetText(command);
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.WriteLine("The command was copied to the clipboard, paste and execute it manually now.\nChanging directories is not supported on macOS yet, sorry.");
+            Console.ResetColor();
         }
+    }
 
-        public override bool ShouldWriteRepositories(Repository[] repositories)
+    protected override void ExecuteRepositoryQuery(Repository[] repositories)
+    {
+        if (repositories.Length > 1)
         {
-            return true;
+            // only use the first repository when multiple repositories came in
+            // cd makes no sense with multiple repositories
+            System.Console.WriteLine("");
+            System.Console.WriteLine($"Found multiple repositories, using {repositories[0].Name}.");
+            System.Console.WriteLine("You can access the others by index now, like:\n  grr cd :2");
+            base.ExecuteRepositoryQuery(new Repository[] { repositories[0], });
         }
+        else
+        {
+            base.ExecuteRepositoryQuery(repositories);
+        }
+    }
+
+    public override bool ShouldWriteRepositories(Repository[] repositories)
+    {
+        return true;
     }
 }

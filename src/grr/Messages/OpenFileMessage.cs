@@ -1,93 +1,92 @@
-namespace grr.Messages
+namespace Grr.Messages;
+
+using System;
+using System.Diagnostics;
+using System.IO.Abstractions;
+using System.Linq;
+using System.Runtime.InteropServices;
+using RepoZ.Ipc;
+
+[System.Diagnostics.DebuggerDisplay("{GetRemoteCommand()}")]
+public class OpenFileMessage : FileMessage
 {
-    using RepoZ.Ipc;
-    using System;
-    using System.Diagnostics;
-    using System.IO.Abstractions;
-    using System.Linq;
-    using System.Runtime.InteropServices;
-
-    [System.Diagnostics.DebuggerDisplay("{GetRemoteCommand()}")]
-    public class OpenFileMessage : FileMessage
+    public OpenFileMessage(RepositoryFilterOptions filter, IFileSystem fileSystem)
+        : base(filter, fileSystem)
     {
-        public OpenFileMessage(RepositoryFilterOptions filter, IFileSystem fileSystem)
-            : base(filter, fileSystem)
-        {
-        }
+    }
 
-        protected override void ExecuteFound(string[] files)
+    protected override void ExecuteFound(string[] files)
+    {
+        foreach (var file in files)
         {
-            foreach (var file in files)
+            System.Console.WriteLine($"Opening {file} ...");
+
+            try
             {
-                System.Console.WriteLine($"Opening {file} ...");
+                Process.Start(CreateStartInfo(file));
+            }
+            catch (System.Exception ex)
+            {
+                System.Console.WriteLine("An error occurred:\n" + ex.ToString());
+            }
+        }
+    }
 
-                try
-                {
-                    Process.Start(CreateStartInfo(file));
-                }
-                catch (System.Exception ex)
-                {
-                    System.Console.WriteLine("An error occurred:\n" + ex.ToString());
-                }
+    private ProcessStartInfo CreateStartInfo(string file)
+    {
+        var isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+
+        if (!Filter.RequestElevation)
+        {
+            if (isWindows)
+            {
+                return new ProcessStartInfo(file) { UseShellExecute = true, };
+            }
+            else
+            {
+                return new ProcessStartInfo("open", file);
             }
         }
 
-        private ProcessStartInfo CreateStartInfo(string file)
+        if (!isWindows)
         {
-            var isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+            throw new AccessViolationException("Elevation is not supported on this platform.");
+        }
 
-            if (!Filter.RequestElevation)
+        var isExecutable = IsExecutable(file);
+
+        // executables can be used directly, whereas files such as *.sln, for example,
+        // have to been opened with (a hidden) cmd.exe to request elevation.
+        // command is:   cmd.exe /C "C:\Path\Solution.sln"
+        var executable = isExecutable ? file : "cmd.exe";
+        var arguments = isExecutable ? "" : $"/C \"{file}\"";
+        ProcessWindowStyle windowStyle = isExecutable ? ProcessWindowStyle.Normal : ProcessWindowStyle.Hidden;
+
+        return new ProcessStartInfo
             {
-                if (isWindows)
-                {
-                    return new ProcessStartInfo(file) { UseShellExecute = true, };
-                }
-                else
-                {
-                    return new ProcessStartInfo("open", file);
-                }
-            }
+                UseShellExecute = true, // this with Verb=runas forces elevation
+                CreateNoWindow = true,
+                WindowStyle = windowStyle,
+                FileName = executable,
+                Verb = "runas", // this with ShellEx=true forces elevation
+                Arguments = arguments,
+            };
+    }
 
-            if (!isWindows)
+    private static bool IsExecutable(string file)
+    {
+        var executables = new string[]
             {
-                throw new AccessViolationException("Elevation is not supported on this platform.");
-            }
+                ".exe",
+                ".bat",
+                ".cmd",
+                ".com",
+            };
+        return executables.Any(e => file.EndsWith(e, System.StringComparison.OrdinalIgnoreCase));
+    }
 
-            var isExecutable = IsExecutable(file);
-
-            // executables can be used directly, whereas files such as *.sln, for example,
-            // have to been opened with (a hidden) cmd.exe to request elevation.
-            // command is:   cmd.exe /C "C:\Path\Solution.sln"
-            var executable = isExecutable ? file : "cmd.exe";
-            var arguments = isExecutable ? "" : $"/C \"{file}\"";
-            var windowStyle = isExecutable ? ProcessWindowStyle.Normal : ProcessWindowStyle.Hidden;
-
-            return new ProcessStartInfo
-                {
-                    UseShellExecute = true, // this with Verb=runas forces elevation
-                    CreateNoWindow = true,
-                    WindowStyle = windowStyle,
-                    FileName = executable,
-                    Verb = "runas", // this with ShellEx=true forces elevation
-                    Arguments = arguments,
-                };
-        }
-
-        private bool IsExecutable(string file)
-        {
-            var executables = new string[]
-                {
-                    ".exe",
-                    ".bat",
-                    ".cmd",
-                    ".com",
-                };
-            return executables.Any(e => file.EndsWith(e, System.StringComparison.OrdinalIgnoreCase));
-        }
-
-        public override bool ShouldWriteRepositories(Repository[] repositories)
-        {
-            return false;
-        }
+    public override bool ShouldWriteRepositories(Repository[] repositories)
+    {
+        return false;
     }
 }

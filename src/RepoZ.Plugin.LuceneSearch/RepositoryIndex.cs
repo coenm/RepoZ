@@ -14,13 +14,6 @@ using Lucene.Net.QueryParsers.Classic;
 using Lucene.Net.Search;
 using Directory = Lucene.Net.Store.Directory;
 
-internal enum SearchOperator
-{
-    And,
-
-    Or,
-}
-
 internal class RepositoryIndex : IRepositoryIndex, IDisposable
 {
     private const string KEY_ID = "id";
@@ -124,7 +117,7 @@ internal class RepositoryIndex : IRepositoryIndex, IDisposable
         // _indexWriter.ForceMerge(1);
     }
 
-    public int Count(Query query = null, Filter filter = null)
+    public int Count(Query? query = null, Filter? filter = null)
     {
         // Execute the search with a fresh indexSearcher
         _searcherManager.MaybeRefreshBlocking();
@@ -153,7 +146,7 @@ internal class RepositoryIndex : IRepositoryIndex, IDisposable
         throw new Exception("No items found.");
     }
 
-    public RepositorySearchResult Search(Guid guid)
+    public RepositorySearchResult? Search(Guid guid)
     {
         if (guid == Guid.Empty)
         {
@@ -177,7 +170,7 @@ internal class RepositoryIndex : IRepositoryIndex, IDisposable
         }
     }
 
-    public List<RepositorySearchResult> Search(Query query, Filter filter, out int totalHits)
+    public List<RepositorySearchResult> Search(Query query, Filter? filter, out int totalHits)
     {
         var results = new List<RepositorySearchResult>();
         totalHits = 0;
@@ -200,13 +193,27 @@ internal class RepositoryIndex : IRepositoryIndex, IDisposable
                 Document doc = searcher.Doc(result.Doc);
 
                 // Results are automatically sorted by relevance
-                var item = new RepositorySearchResult(result.Score)
-                    {
-                        // Id = GetId(doc),
-                        RepositoryName = doc.GetField(KEY_REPOSITORY_NAME)?.GetStringValue(),
-                        Path = doc.GetField(KEY_REPOSITORY_PATH)?.GetStringValue(),
-                        Tags = doc.GetValues(KEY_TAG)?.ToList() ?? new List<string>(),
-                    };
+                // Id = GetId(doc),
+                var repositoryName = doc.GetField(KEY_REPOSITORY_NAME)?.GetStringValue();
+                if (string.IsNullOrWhiteSpace(repositoryName))
+                {
+                    continue;
+                }
+
+                var path = doc.GetField(KEY_REPOSITORY_PATH)?.GetStringValue();
+                if (string.IsNullOrWhiteSpace(path))
+                {
+                    continue;
+                }
+
+                List<string> tags = doc.GetValues(KEY_TAG)?.ToList() ?? new List<string>();
+
+                var item = new RepositorySearchResult(repositoryName, path, tags, result.Score);
+
+                if (item == null)
+                {
+                    throw new ArgumentNullException(nameof(item));
+                }
 
                 results.Add(item);
             }

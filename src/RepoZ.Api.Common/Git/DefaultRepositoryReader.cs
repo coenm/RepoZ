@@ -17,20 +17,22 @@ public class DefaultRepositoryReader : IRepositoryReader
         _resolver = resolver;
     }
 
-    public Api.Git.Repository ReadRepository(string path)
+    public Api.Git.Repository? ReadRepository(string path)
     {
         if (string.IsNullOrEmpty(path))
         {
-            return Api.Git.Repository.Empty;
+            return null;
+            //return Api.Git.Repository.Empty;
         }
 
         var repoPath = LibGit2Sharp.Repository.Discover(path);
         if (string.IsNullOrEmpty(repoPath))
         {
-            return Api.Git.Repository.Empty;
+            return null;
+            // return Api.Git.Repository.Empty;
         }
 
-        Repository result = ReadRepositoryWithRetries(repoPath, 3);
+        Repository? result = ReadRepositoryWithRetries(repoPath, 3);
         if (result != null)
         {
             result.Tags = _resolver.GetTags(result).ToArray();
@@ -38,9 +40,9 @@ public class DefaultRepositoryReader : IRepositoryReader
         return result;
     }
 
-    private Api.Git.Repository ReadRepositoryWithRetries(string repoPath, int maxRetries)
+    private Api.Git.Repository? ReadRepositoryWithRetries(string repoPath, int maxRetries)
     {
-        Api.Git.Repository repository = null;
+        Api.Git.Repository? repository = null;
         var currentTry = 1;
 
         while (repository == null && currentTry <= maxRetries)
@@ -67,7 +69,7 @@ public class DefaultRepositoryReader : IRepositoryReader
         return repository;
     }
 
-    private Api.Git.Repository ReadRepositoryInternal(string repoPath)
+    private static Api.Git.Repository? ReadRepositoryInternal(string repoPath)
     {
         try
         {
@@ -106,7 +108,8 @@ public class DefaultRepositoryReader : IRepositoryReader
         }
         catch (Exception)
         {
-            return Api.Git.Repository.Empty;
+            return null;
+            // return Api.Git.Repository.Empty;
         }
     }
 
@@ -119,7 +122,10 @@ public class DefaultRepositoryReader : IRepositoryReader
 
             // "origin/" is removed from remote branches name and HEAD branch is ignored
             var strippedRemoteBranches = repo.Branches
-                                             .Where(b => b.IsRemote && b.FriendlyName.IndexOf("HEAD") == -1)
+                                             .Where(b =>
+                                                 b.IsRemote
+                                                 &&
+                                                 b.FriendlyName.IndexOf("HEAD", StringComparison.CurrentCultureIgnoreCase) == -1)
                                              .Select(b => b.FriendlyName.Replace("origin/", ""))
                                              .ToList();
 
@@ -134,17 +140,17 @@ public class DefaultRepositoryReader : IRepositoryReader
         }
     }
 
-    private HeadDetails GetHeadDetails(LibGit2Sharp.Repository repo)
+    private static HeadDetails GetHeadDetails(LibGit2Sharp.Repository repo)
     {
         // unfortunately, type DetachedHead is internal ...
         var isDetached = repo.Head.GetType().Name.EndsWith("DetachedHead", StringComparison.OrdinalIgnoreCase);
 
-        Tag tag = null;
+        Tag? tag = null;
 
         var headTipSha = repo.Head.Tip?.Sha;
         if (isDetached && headTipSha != null)
         {
-            tag = repo.Tags.FirstOrDefault(t => t.Target?.Sha?.Equals(repo.Head.Tip.Sha) ?? false);
+            tag = repo.Tags.FirstOrDefault(t => t.Target?.Sha?.Equals(repo.Head.Tip?.Sha) ?? false);
         }
 
         return new HeadDetails()
@@ -157,9 +163,9 @@ public class DefaultRepositoryReader : IRepositoryReader
             };
     }
 
-    internal class HeadDetails
+    private class HeadDetails
     {
-        internal string Name { get; set; }
+        internal string Name { get; set; } = string.Empty;
         internal bool IsDetached { get; set; }
         internal bool IsOnTag { get; set; }
     }

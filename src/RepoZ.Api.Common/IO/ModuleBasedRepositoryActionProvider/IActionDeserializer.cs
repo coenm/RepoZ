@@ -8,5 +8,5 @@ public interface IActionDeserializer
 {
     bool CanDeserialize(string type);
 
-    RepositoryAction Deserialize(JToken jToken, ActionDeserializerComposition actionDeserializer);
+    RepositoryAction? Deserialize(JToken jToken, ActionDeserializerComposition actionDeserializer);
 }
