@@ -135,6 +135,18 @@ stages:
           displayName: Export coverage to CodeCov
           name: CodeCov
 
+        - pwsh: |
+            dotnet tool install --tool-path . dotnet-reportgenerator-globaltool
+            ./reportgenerator "-reports:../**/coverag*.cobertura.xml" "-targetdir:$(Agent.TempDirectory)" "-reporttypes:Cobertura"
+          displayName: Merge coverage reports
+          name: MergeCoverageReports
+
+        - task: PublishCodeCoverageResults@1
+          displayName: 'Publish code coverage to devops'
+          inputs:
+            codeCoverageTool: Cobertura
+            summaryFileLocation: '$(Agent.TempDirectory)/Cobertura.xml'          
+
         - task: DotNetCoreCLI@2
           displayName: "Dotnet Publish RepoZ"
           inputs:
