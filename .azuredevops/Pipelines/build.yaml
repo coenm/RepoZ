@@ -85,12 +85,21 @@ stages:
         #   displayName: Re-generate markdown without links
         #   name: mdsnippets
 
+        # - pwsh: |
+        #     nuget install NSIS -OutputDirectory ./packages
+        #     packages\NSIS.2.51\tools\makensis.exe --help
+        #   displayName: NSIS
+        #   name: NSIS
 
         - pwsh: |
             nuget install NSIS -OutputDirectory ./packages
-            packages\NSIS.2.51\tools\makensis.exe --help
           displayName: NSIS
-          name: NSIS      
+          name: NSIS
+
+        - pwsh: |
+            makensis.exe
+          displayName: NSIS1
+          name: NSIS1
 
         # - pwsh: |
         #     dotnet tool install --tool-path . nsis-tool
