@@ -176,7 +176,16 @@ stages:
         - pwsh: |
             makensis.exe /DPRODUCT_VERSION=1.2.3 _setup/RepoZ.nsi 
           displayName: Create installer
-          name: CreateInstaller
+          # name: CreateInstaller
+
+        - task: PublishBuildArtifacts@1
+          displayName: "Publish artifact"
+          inputs:
+            # PathtoPublish: "$(Build.ArtifactStagingDirectory)"
+            PathtoPublish: "_output"
+            ArtifactName: installer
+
+
 
         - pwsh: |
             dotnet tool install --tool-path . dotnet-reportgenerator-globaltool
