@@ -128,9 +128,10 @@ stages:
             publishTestResults: true
      
         # https://docs.codecov.com/docs/codecov-uploader
+        # todo fix path
         - pwsh: |
             Invoke-WebRequest -Uri https://uploader.codecov.io/latest/windows/codecov.exe -Outfile codecov.exe
-            ./codecov.exe -f "**/coverag*.cobertura.xml"
+            ./codecov.exe -f "../**/coverag*.cobertura.xml"
           displayName: Export coverage to CodeCov
           name: CodeCov
 
