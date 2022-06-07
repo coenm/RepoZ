@@ -115,7 +115,7 @@ stages:
           displayName: "DotNet Test"
           inputs:
             command: test
-            projects: '**/*[Tt]est/*.csproj'
+            projects: '**/*[Tt]ests?*.csproj'
             configuration: $(BuildConfiguration) 
             nobuild: true
             arguments: '--collect:"XPlat Code Coverage" --logger trx /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:ExcludeByAttribute=$(COVERLET_EXCLUDE_ATTRIBUTE) /p:ExcludeByFile=*\*Designer.cs /p:CoverletOutput=../_CoverageResults/ /p:MergeWith="../_CoverageResults/coverage.json" /p:CoverletOutputFormat=cobertura%2cjson'
