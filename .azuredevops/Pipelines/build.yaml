@@ -41,6 +41,11 @@ stages:
             value: 'DebuggerNonUserCodeAttribute%2cExcludeFromCodeCoverageAttribute%2cGeneratedCodeAttribute%2cCompilerGeneratedAttribute'
  
         steps:
+
+        - pwsh: |
+            mkdir _output/Win/Assemblies
+          displayName: Create directories
+
         - script: git submodule update --init --recursive
           displayName: Update git submodules
 
@@ -129,13 +134,6 @@ stages:
         #   displayName: Export coverage to CodeCov
         #   name: CodeCov
 
-        - pwsh: |
-            mkdir _output
-            mkdir _output/Win
-            mkdir _output/Win/Assemblies
-          displayName: Create directories
-          name: CreateInstallerDirecoties
-
         - task: DotNetCoreCLI@2
           displayName: "Dotnet Publish RepoZ"
           inputs:
@@ -179,13 +177,8 @@ stages:
 
         - pwsh: |
             nuget install NSIS -OutputDirectory ./packages
-          displayName: NSIS
-          name: NSIS
-
-        - pwsh: |
             makensis.exe /DPRODUCT_VERSION=1.2.3 _setup/RepoZ.nsi 
           displayName: Create installer
-          # name: CreateInstaller
 
         - task: PublishBuildArtifacts@1
           displayName: "Publish artifact"
