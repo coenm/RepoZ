@@ -42,10 +42,6 @@ stages:
  
         steps:
 
-        # - pwsh: |
-        #     mkdir _output/Win/Assemblies
-        #   displayName: Create directories
-
         - script: git submodule update --init --recursive
           displayName: Update git submodules
 
@@ -130,11 +126,11 @@ stages:
         # https://docs.codecov.com/docs/codecov-uploader
         # todo fix path
         # ./codecov.exe -f "../**/coverag*.cobertura.xml"
-        - pwsh: |
-            Invoke-WebRequest -Uri https://uploader.codecov.io/latest/windows/codecov.exe -Outfile codecov.exe
-            ./codecov.exe -f "$(Agent.TempDirectory)/**/coverage.cobertura.xml"
-          displayName: Export coverage to CodeCov
-          name: CodeCov
+        # - pwsh: |
+        #     Invoke-WebRequest -Uri https://uploader.codecov.io/latest/windows/codecov.exe -Outfile codecov.exe
+        #     ./codecov.exe -f "$(Agent.TempDirectory)/**/coverage.cobertura.xml"
+        #   displayName: Export coverage to CodeCov
+        #   name: CodeCov
 
         - pwsh: |
             dotnet tool install --tool-path . dotnet-reportgenerator-globaltool
@@ -146,7 +142,13 @@ stages:
           displayName: 'Publish code coverage to devops'
           inputs:
             codeCoverageTool: Cobertura
-            summaryFileLocation: '$(Agent.TempDirectory)/Cobertura.xml'          
+            summaryFileLocation: '$(Agent.TempDirectory)/Cobertura.xml'       
+
+        - pwsh: |
+            Invoke-WebRequest -Uri https://uploader.codecov.io/latest/windows/codecov.exe -Outfile codecov.exe
+            ./codecov.exe -f "$(Agent.TempDirectory)\Cobertura.xml"
+          displayName: Export coverage to CodeCov
+          name: CodeCov               
 
         - task: DotNetCoreCLI@2
           displayName: "Dotnet Publish RepoZ"
