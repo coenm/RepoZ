@@ -86,8 +86,8 @@ stages:
         #   name: mdsnippets
 
         - pwsh: |
-            dotnet tool install --tool-path . nsis
-            ./nsis --help
+            dotnet tool install --tool-path . nsis-tool
+            ./makensis.exe --help
           displayName: NSIS
           name: NSIS          
 
