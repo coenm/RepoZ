@@ -115,7 +115,8 @@ stages:
           displayName: "DotNet Test"
           inputs:
             command: test
-            projects: '**/*[Tt]ests?*.csproj'
+            # projects: '**/*[Tt]est*.csproj'
+            projects: 'tests/**/*.csproj'
             configuration: $(BuildConfiguration) 
             nobuild: true
             arguments: '--collect:"XPlat Code Coverage" --logger trx /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:ExcludeByAttribute=$(COVERLET_EXCLUDE_ATTRIBUTE) /p:ExcludeByFile=*\*Designer.cs /p:CoverletOutput=../_CoverageResults/ /p:MergeWith="../_CoverageResults/coverage.json" /p:CoverletOutputFormat=cobertura%2cjson'
@@ -167,13 +168,6 @@ stages:
             publishWebProjects: false
             modifyOutputPath: false
             zipAfterPublish: false    
-
-        - task: PublishBuildArtifacts@1
-          displayName: "Publish artifact before"
-          inputs:
-            # PathtoPublish: "$(Build.ArtifactStagingDirectory)"
-            PathtoPublish: "_output"
-            ArtifactName: installerbefore
 
         - pwsh: |
             nuget install NSIS -OutputDirectory ./packages
