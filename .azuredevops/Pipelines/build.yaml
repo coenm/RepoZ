@@ -151,7 +151,7 @@ stages:
           inputs:
             command: publish
             # arguments: "--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)/${{ variables.SystemTestsArtifactName }}/bin/Release/publish --no-build --self-contained true"
-            arguments: "--configuration $(buildConfiguration) --output _output/Win/Assemblies--self-contained true"
+            arguments: "--configuration $(buildConfiguration) --output _output/Win/Assemblies --self-contained true"
             projects: "**/grr.csproj"
             publishWebProjects: false
             modifyOutputPath: false
