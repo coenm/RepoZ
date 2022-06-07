@@ -96,11 +96,6 @@ stages:
           displayName: NSIS
           name: NSIS
 
-        - pwsh: |
-            makensis.exe
-          displayName: NSIS1
-          name: NSIS1
-
         # - pwsh: |
         #     dotnet tool install --tool-path . nsis-tool
         #     ./makensis.exe --help
@@ -137,7 +132,19 @@ stages:
         #     ./codecov.exe -f "**/coverag*.cobertura.xml"
         #   displayName: Export coverage to CodeCov
         #   name: CodeCov
-     
+
+        - pwsh: |
+            mkdir _output
+            mkdir _output/Win
+            mkdir _output/Win/Assemblies            
+          displayName: Copy Artifacts
+          name: CopyArtifacts
+
+        - pwsh: |
+            makensis.exe
+          displayName: NSIS1
+          name: NSIS1
+
         - pwsh: |
             dotnet tool install --tool-path . dotnet-reportgenerator-globaltool
             ./reportgenerator "-reports:**/coverag*.cobertura.xml" "-targetdir:$(Agent.TempDirectory)" "-reporttypes:Cobertura"
@@ -149,6 +156,7 @@ stages:
           inputs:
             codeCoverageTool: Cobertura
             summaryFileLocation: '$(Agent.TempDirectory)/Cobertura.xml'
+            
        
         # - task: DotNetCoreCLI@2
         #   displayName: 'DotNet Pack'
