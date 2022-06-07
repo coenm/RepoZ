@@ -91,11 +91,6 @@ stages:
         #   displayName: NSIS
         #   name: NSIS
 
-        - pwsh: |
-            nuget install NSIS -OutputDirectory ./packages
-          displayName: NSIS
-          name: NSIS
-
         # - pwsh: |
         #     dotnet tool install --tool-path . nsis-tool
         #     ./makensis.exe --help
@@ -139,6 +134,11 @@ stages:
             mkdir _output/Win/Assemblies            
           displayName: Copy Artifacts
           name: CopyArtifacts
+
+        - pwsh: |
+            nuget install NSIS -OutputDirectory ./packages
+          displayName: NSIS
+          name: NSIS
 
         - pwsh: |
             makensis.exe
