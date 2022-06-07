@@ -127,7 +127,7 @@ stages:
             arguments: '--collect:"XPlat Code Coverage" --logger trx /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:ExcludeByAttribute=$(COVERLET_EXCLUDE_ATTRIBUTE) /p:ExcludeByFile=*\*Designer.cs /p:CoverletOutput=../_CoverageResults/ /p:MergeWith="../_CoverageResults/coverage.json" /p:CoverletOutputFormat=cobertura%2cjson'
             publishTestResults: true
      
-        https://docs.codecov.com/docs/codecov-uploader
+        # https://docs.codecov.com/docs/codecov-uploader
         - pwsh: |
             Invoke-WebRequest -Uri https://uploader.codecov.io/latest/windows/codecov.exe -Outfile codecov.exe
             ./codecov.exe -f "**/coverag*.cobertura.xml"
@@ -198,7 +198,6 @@ stages:
           inputs:
             codeCoverageTool: Cobertura
             summaryFileLocation: '$(Agent.TempDirectory)/Cobertura.xml'
-            
        
         # - task: DotNetCoreCLI@2
         #   displayName: 'DotNet Pack'
