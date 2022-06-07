@@ -174,9 +174,9 @@ stages:
           name: NSIS
 
         - pwsh: |
-            makensis.exe
-          displayName: NSIS1
-          name: NSIS1
+            makensis.exe /DPRODUCT_VERSION=1.2.3 _setup/RepoZ.nsi 
+          displayName: Create installer
+          name: CreateInstaller
 
         - pwsh: |
             dotnet tool install --tool-path . dotnet-reportgenerator-globaltool
