@@ -200,17 +200,17 @@ stages:
             PathtoPublish: "_output"
             ArtifactName: installer
 
-        - pwsh: |
-            dotnet tool install --tool-path . dotnet-reportgenerator-globaltool
-            ./reportgenerator "-reports:**/coverag*.cobertura.xml" "-targetdir:$(Agent.TempDirectory)" "-reporttypes:Cobertura"
-          displayName: Merge coverage reports
-          name: MergeCoverageReports
+        # - pwsh: |
+        #     dotnet tool install --tool-path . dotnet-reportgenerator-globaltool
+        #     ./reportgenerator "-reports:**/coverag*.cobertura.xml" "-targetdir:$(Agent.TempDirectory)" "-reporttypes:Cobertura"
+        #   displayName: Merge coverage reports
+        #   name: MergeCoverageReports
 
-        - task: PublishCodeCoverageResults@1
-          displayName: 'Publish code coverage to devops'
-          inputs:
-            codeCoverageTool: Cobertura
-            summaryFileLocation: '$(Agent.TempDirectory)/Cobertura.xml'
+        # - task: PublishCodeCoverageResults@1
+        #   displayName: 'Publish code coverage to devops'
+        #   inputs:
+        #     codeCoverageTool: Cobertura
+        #     summaryFileLocation: '$(Agent.TempDirectory)/Cobertura.xml'
        
         # - task: DotNetCoreCLI@2
         #   displayName: 'DotNet Pack'
