@@ -42,9 +42,9 @@ stages:
  
         steps:
 
-        - pwsh: |
-            mkdir _output/Win/Assemblies
-          displayName: Create directories
+        # - pwsh: |
+        #     mkdir _output/Win/Assemblies
+        #   displayName: Create directories
 
         - script: git submodule update --init --recursive
           displayName: Update git submodules
@@ -127,12 +127,12 @@ stages:
             arguments: '--collect:"XPlat Code Coverage" --logger trx /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:ExcludeByAttribute=$(COVERLET_EXCLUDE_ATTRIBUTE) /p:ExcludeByFile=*\*Designer.cs /p:CoverletOutput=../_CoverageResults/ /p:MergeWith="../_CoverageResults/coverage.json" /p:CoverletOutputFormat=cobertura%2cjson'
             publishTestResults: true
      
-        # https://docs.codecov.com/docs/codecov-uploader
-        # - pwsh: |
-        #     Invoke-WebRequest -Uri https://uploader.codecov.io/latest/windows/codecov.exe -Outfile codecov.exe
-        #     ./codecov.exe -f "**/coverag*.cobertura.xml"
-        #   displayName: Export coverage to CodeCov
-        #   name: CodeCov
+        https://docs.codecov.com/docs/codecov-uploader
+        - pwsh: |
+            Invoke-WebRequest -Uri https://uploader.codecov.io/latest/windows/codecov.exe -Outfile codecov.exe
+            ./codecov.exe -f "**/coverag*.cobertura.xml"
+          displayName: Export coverage to CodeCov
+          name: CodeCov
 
         - task: DotNetCoreCLI@2
           displayName: "Dotnet Publish RepoZ"
@@ -187,17 +187,17 @@ stages:
             PathtoPublish: "_output"
             ArtifactName: installer
 
-        # - pwsh: |
-        #     dotnet tool install --tool-path . dotnet-reportgenerator-globaltool
-        #     ./reportgenerator "-reports:**/coverag*.cobertura.xml" "-targetdir:$(Agent.TempDirectory)" "-reporttypes:Cobertura"
-        #   displayName: Merge coverage reports
-        #   name: MergeCoverageReports
+        - pwsh: |
+            dotnet tool install --tool-path . dotnet-reportgenerator-globaltool
+            ./reportgenerator "-reports:**/coverag*.cobertura.xml" "-targetdir:$(Agent.TempDirectory)" "-reporttypes:Cobertura"
+          displayName: Merge coverage reports
+          name: MergeCoverageReports
 
-        # - task: PublishCodeCoverageResults@1
-        #   displayName: 'Publish code coverage to devops'
-        #   inputs:
-        #     codeCoverageTool: Cobertura
-        #     summaryFileLocation: '$(Agent.TempDirectory)/Cobertura.xml'
+        - task: PublishCodeCoverageResults@1
+          displayName: 'Publish code coverage to devops'
+          inputs:
+            codeCoverageTool: Cobertura
+            summaryFileLocation: '$(Agent.TempDirectory)/Cobertura.xml'
             
        
         # - task: DotNetCoreCLI@2
