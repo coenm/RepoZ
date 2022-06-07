@@ -132,7 +132,7 @@ stages:
         - pwsh: |
             mkdir _output
             mkdir _output/Win
-            mkdir _output/Win/Assemblies            
+            mkdir _output/Win/Assemblies
           displayName: Create directories
           name: CreateInstallerDirecoties
 
@@ -169,6 +169,14 @@ stages:
             modifyOutputPath: false
             zipAfterPublish: false    
 
+        - task: DeleteFiles@1
+          displayName: 'Remove unneeded files'
+          inputs:
+            contents: |
+              _output/**/*.xlm
+              _output/**/*.config
+              _output/**/*.pdb
+
         - pwsh: |
             nuget install NSIS -OutputDirectory ./packages
           displayName: NSIS
@@ -186,19 +194,17 @@ stages:
             PathtoPublish: "_output"
             ArtifactName: installer
 
+        # - pwsh: |
+        #     dotnet tool install --tool-path . dotnet-reportgenerator-globaltool
+        #     ./reportgenerator "-reports:**/coverag*.cobertura.xml" "-targetdir:$(Agent.TempDirectory)" "-reporttypes:Cobertura"
+        #   displayName: Merge coverage reports
+        #   name: MergeCoverageReports
 
-
-        - pwsh: |
-            dotnet tool install --tool-path . dotnet-reportgenerator-globaltool
-            ./reportgenerator "-reports:**/coverag*.cobertura.xml" "-targetdir:$(Agent.TempDirectory)" "-reporttypes:Cobertura"
-          displayName: Merge coverage reports
-          name: MergeCoverageReports
-
-        - task: PublishCodeCoverageResults@1
-          displayName: 'Publish code coverage to devops'
-          inputs:
-            codeCoverageTool: Cobertura
-            summaryFileLocation: '$(Agent.TempDirectory)/Cobertura.xml'
+        # - task: PublishCodeCoverageResults@1
+        #   displayName: 'Publish code coverage to devops'
+        #   inputs:
+        #     codeCoverageTool: Cobertura
+        #     summaryFileLocation: '$(Agent.TempDirectory)/Cobertura.xml'
             
        
         # - task: DotNetCoreCLI@2
