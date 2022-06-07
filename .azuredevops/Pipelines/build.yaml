@@ -85,11 +85,18 @@ stages:
         #   displayName: Re-generate markdown without links
         #   name: mdsnippets
 
+
         - pwsh: |
-            dotnet tool install --tool-path . nsis-tool
-            ./makensis.exe --help
+            nuget install NSIS -OutputDirectory ./packages
+            packages\NSIS.2.51\tools\makensis.exe --help
           displayName: NSIS
-          name: NSIS          
+          name: NSIS      
+
+        # - pwsh: |
+        #     dotnet tool install --tool-path . nsis-tool
+        #     ./makensis.exe --help
+        #   displayName: NSIS
+        #   name: NSIS          
 
         - task: DotNetCoreCLI@2
           displayName: DotNet Restore
