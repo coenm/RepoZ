@@ -129,15 +129,16 @@ stages:
      
         # https://docs.codecov.com/docs/codecov-uploader
         # todo fix path
+        # ./codecov.exe -f "../**/coverag*.cobertura.xml"
         - pwsh: |
             Invoke-WebRequest -Uri https://uploader.codecov.io/latest/windows/codecov.exe -Outfile codecov.exe
-            ./codecov.exe -f "../**/coverag*.cobertura.xml"
+            ./codecov.exe -f "$(Agent.TempDirectory)/**/coverage.cobertura.xml"
           displayName: Export coverage to CodeCov
           name: CodeCov
 
         - pwsh: |
             dotnet tool install --tool-path . dotnet-reportgenerator-globaltool
-            ./reportgenerator "-reports:../**/coverag*.cobertura.xml" "-targetdir:$(Agent.TempDirectory)" "-reporttypes:Cobertura"
+            ./reportgenerator "-reports:$(Agent.TempDirectory)/**/coverage.cobertura.xml" "-targetdir:$(Agent.TempDirectory)" "-reporttypes:Cobertura"
           displayName: Merge coverage reports
           name: MergeCoverageReports
 
