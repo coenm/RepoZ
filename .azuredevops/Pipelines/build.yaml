@@ -168,6 +168,13 @@ stages:
             modifyOutputPath: false
             zipAfterPublish: false    
 
+        - task: PublishBuildArtifacts@1
+          displayName: "Publish artifact before"
+          inputs:
+            # PathtoPublish: "$(Build.ArtifactStagingDirectory)"
+            PathtoPublish: "_output"
+            ArtifactName: installerbefore
+
         - pwsh: |
             nuget install NSIS -OutputDirectory ./packages
           displayName: NSIS
