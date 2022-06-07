@@ -132,8 +132,41 @@ stages:
             mkdir _output
             mkdir _output/Win
             mkdir _output/Win/Assemblies            
-          displayName: Copy Artifacts
-          name: CopyArtifacts
+          displayName: Create directories
+          name: CreateInstallerDirecoties
+
+        - task: DotNetCoreCLI@2
+          displayName: "Dotnet Publish RepoZ"
+          inputs:
+            command: publish
+            # arguments: "--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)/${{ variables.SystemTestsArtifactName }}/bin/Release/publish --no-build --self-contained true"
+            arguments: "--configuration $(buildConfiguration) --output _output/Win/Assemblies --no-build"
+            projects: "**/RepoZ.App.Win.csproj"
+            publishWebProjects: false
+            modifyOutputPath: false
+            zipAfterPublish: false
+
+        - task: DotNetCoreCLI@2
+          displayName: "Dotnet Publish Grr"
+          inputs:
+            command: publish
+            # arguments: "--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)/${{ variables.SystemTestsArtifactName }}/bin/Release/publish --no-build --self-contained true"
+            arguments: "--configuration $(buildConfiguration) --output _output/Win/Assemblies --no-build"
+            projects: "**/grr.csproj"
+            publishWebProjects: false
+            modifyOutputPath: false
+            zipAfterPublish: false
+
+        - task: DotNetCoreCLI@2
+          displayName: "Dotnet Publish grrui"
+          inputs:
+            command: publish
+            # arguments: "--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)/${{ variables.SystemTestsArtifactName }}/bin/Release/publish --no-build --self-contained true"
+            arguments: "--configuration $(buildConfiguration) --output _output/Win/Assemblies --no-build"
+            projects: "**/grrui.csproj"
+            publishWebProjects: false
+            modifyOutputPath: false
+            zipAfterPublish: false    
 
         - pwsh: |
             nuget install NSIS -OutputDirectory ./packages
