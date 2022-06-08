@@ -79,6 +79,21 @@ stages:
             errorActionPreference: 'silentlyContinue'
             ignoreLASTEXITCODE: true
 
+        - task: PowerShell@2
+          displayName: Export variables
+          inputs:
+            targetType: 'inline'
+            script: |
+              $var = (gci env:*).GetEnumerator() | Sort-Object Name
+              $out = ""
+              Foreach ($v in $var) {$out = $out + "`t{0,-28} = {1,-28}`n" -f $v.Name, $v.Value}
+              $fileName = (Join-Path $env:BUILD_ARTIFACTSTAGINGDIRECTORY "EnvironmentVariables.md")
+              write-output "Dump variables on $fileName"
+              set-content $fileName $out
+              write-output "##vso[task.addattachment type=Distributedtask.Core.Summary;name=Environment Variables;]$fileName"
+            errorActionPreference: 'silentlyContinue'
+            ignoreLASTEXITCODE: true
+
         # # regenerate markdowns without links (in order to generate markdown to be included in nuget package)
         # - pwsh: |
         #     dotnet tool install --tool-path . MarkdownSnippets.Tool
