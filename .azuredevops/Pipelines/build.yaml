@@ -198,12 +198,18 @@ stages:
             nuget install NSIS -OutputDirectory ./packages
             makensis.exe /DPRODUCT_VERSION=1.2.3 _setup/RepoZ.nsi 
           displayName: Create installer
+          
+        - task: DeleteFiles@1
+          displayName: 'Remove binaries'
+          inputs:
+            contents: |
+              _output/win
 
         - task: PublishBuildArtifacts@1
           displayName: "Publish artifact"
           inputs:
             # PathtoPublish: "$(Build.ArtifactStagingDirectory)"
-            PathtoPublish: "_output/RepoZ*Setup.exe"
+            PathtoPublish: "_output"
             ArtifactName: installer
 
         # - pwsh: |
