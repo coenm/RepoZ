@@ -37,19 +37,3 @@ using System.Windows;
 											  //(used if a resource is not found in the page, 
 											  // app, or any theme specific resource dictionaries)
 )]
-
-
-// Version information for an assembly consists of the following four values:
-//
-//      Major Version
-//      Minor Version 
-//      Build Number
-//      Revision
-//
-// You can specify all the values or you can default the Build and Revision Numbers 
-// by using the '*' as shown below:
-// [assembly: AssemblyVersion("5.5.2.0")]
-[assembly: AssemblyVersion("5.5.2.0")]
-[assembly: AssemblyFileVersion("5.5.2.0")]
-
-[assembly: AssemblyInformationalVersion("5.5.2-nullable.1+83.Branch.feature/nullable.Sha.2b6ba5391f05ad068c7a11790b5e141e7c08082b")]
